@@ -1,33 +1,76 @@
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import org.hibernate.annotations.DynamicInsert;
+import jakarta.validation.constraints.*;
 
 @Entity
-@Table(name="Partida")
-@DynamicInsert
+@Table(name = "Jugador")
 public class Jugador {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
-    private Integer id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	private Integer id;
 
+	@NotBlank(message = "El nom es obligatori!")
+	@Size(max = 100)
+	@Column(name = "nom", nullable = false, length = 100)
+	private String nom;
 
-    @NotNull(message = "El nom no pot ser null!")
-    @Column(name = "nom",nullable = false)
-    private String nom;
+	@NotNull(message = "El jugador ha de tenir un color!")
+	@Enumerated(EnumType.STRING)
+	@Column(name = "color_jugador", nullable = false, length = 15)
+	private ColorJugador color;
 
-    @NotNull(message = "El jugador ha de tenir un color!")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "color_jugador", nullable = false, length = 15)
-    private ColorJugador color;
+	@Min(1)
+	@Max(4)
+	@Column(name = "ordre_torn", nullable = false)
+	private int ordreTorn;
 
-    @NotNull(message = "El jugador si o si ha de tenir un ordre de torn!")
-    @Column(name = "ordre_torn", nullable = false)
-    private int ordreTorn;
+	@Min(value = 0, message = "Els cavallers jugats no poden ser negatius!")
+	@Column(name = "cavallers_jugats", nullable = false)
+	private int cavallersJugats;
 
-    @NotNull(message = "El jugador si o si ha de tenir un ordre de torn!")
-    @Column(name = "ordre_torn", nullable = false)
-    private int cavallersJugats;
+	public Jugador() {
+	}
 
+	public Jugador(String nom, ColorJugador color, int ordreTorn) {
+		this.nom = nom;
+		this.color = color;
+		this.ordreTorn = ordreTorn;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public String getNom() {
+		return nom;
+	}
+
+	public void setNom(String nom) {
+		this.nom = nom;
+	}
+
+	public ColorJugador getColor() {
+		return color;
+	}
+
+	public void setColor(ColorJugador color) {
+		this.color = color;
+	}
+
+	public int getOrdreTorn() {
+		return ordreTorn;
+	}
+
+	public void setOrdreTorn(int ordreTorn) {
+		this.ordreTorn = ordreTorn;
+	}
+
+	public int getCavallersJugats() {
+		return cavallersJugats;
+	}
+
+	public void setCavallersJugats(int cavallersJugats) {
+		this.cavallersJugats = cavallersJugats;
+	}
 
 }
