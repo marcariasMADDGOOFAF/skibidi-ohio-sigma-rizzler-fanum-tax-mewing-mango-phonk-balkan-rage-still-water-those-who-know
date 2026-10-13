@@ -1,4 +1,12 @@
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
@@ -18,7 +26,9 @@ public class RecursJugador {
     @Column(name = "quantitat", nullable = false)
     private int quantitat;
 
-    public RecursJugador() { }
+    public RecursJugador() {
+    	
+    }
 
     public RecursJugador(TipusRecurs tipus, int quantitat) {
         this.tipus = tipus;

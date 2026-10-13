@@ -1,11 +1,23 @@
 import org.hibernate.annotations.DynamicInsert;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "Partida")
@@ -23,16 +35,15 @@ public class Partida {
 	private EstatPartida estat = EstatPartida.PREPARACIO;
 
 	@NotNull(message = "La data d'inici no pot ser nula!")
-	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "data_inici", nullable = false)
 	private Date dataInici = new Date();
 
-	@Min(value = 1, message = "La ronda ha de ser com a mínim 1")
+	@Min(value = 1, message = "La ronda ha de ser com a minim 1")
 	@Column(name = "ronda", nullable = false)
 	private int ronda = 1;
 
-	@Min(0)
-	@Max(12)
+	@Min(value = 2, message = "La tirada ha de ser minim 2")
+	@Max(value =12, message = "La tirada ha de ser Maxim 12")
 	@Column(name = "ultima_tirada", nullable = false)
 	private int ultimaTirada;
 
@@ -48,6 +59,11 @@ public class Partida {
 	@Column(name = "lladre_pendent", nullable = false)
 	private boolean lladrePendent;
 
+	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<Jugador> jugadors = new ArrayList<>();
+	
+	
+	
 	public Partida() {
 	}
 
