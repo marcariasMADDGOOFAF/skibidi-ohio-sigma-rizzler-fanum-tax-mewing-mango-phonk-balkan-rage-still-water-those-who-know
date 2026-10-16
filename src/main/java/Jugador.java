@@ -62,7 +62,7 @@ public class Jugador {
 	@OneToMany(mappedBy = "jugador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<RecursJugador> recursos = new ArrayList<>();
 
-	@OneToMany(mappedBy = "propietari", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "ma", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<CartaDesenvolupament> cartes = new ArrayList<>();
 	
 	public Jugador() {
