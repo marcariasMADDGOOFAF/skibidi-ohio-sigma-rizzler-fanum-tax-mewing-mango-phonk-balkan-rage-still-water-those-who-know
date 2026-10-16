@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -33,8 +34,8 @@ public class Jugador {
 	@Column(name = "color_jugador", nullable = false, length = 15)
 	private ColorJugador color;
 
-	@Min(1)
-	@Max(4)
+	@Min(value = 1)
+	@Max( value = 4)
 	@Column(name = "ordre_torn", nullable = false)
 	private int ordreTorn;
 
@@ -46,6 +47,12 @@ public class Jugador {
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "partida_id", nullable = false)
 	private Partida partida;
+	
+    @OneToOne(mappedBy = "actiu", fetch = FetchType.LAZY)
+    private Partida partidaActiva;
+
+    @OneToOne(mappedBy = "guanyador", fetch = FetchType.LAZY)
+    private Partida partidaGuanyada;
 	
 	public Jugador() {
 	}

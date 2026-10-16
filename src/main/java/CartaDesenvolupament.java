@@ -29,6 +29,9 @@ public class CartaDesenvolupament {
 	@Column(name = "ronda_compra")
 	private Integer rondaCompra;
 
+	
+	
+	
 	public CartaDesenvolupament() {
 	}
 
