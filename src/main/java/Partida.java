@@ -74,9 +74,17 @@ public class Partida {
 	@JoinColumn(name = "jugador_guanyador_id")
 	private Jugador guanyador;
 	
+	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<CartaDesenvolupament> pila = new ArrayList<>();
+	
+	
 	public Partida() {
 	}
 
+	public List<CartaDesenvolupament> getPila() {
+		return this.pila;
+	}
+	
 	public Partida(int puntsPerGuanyar) {
 		this.puntsPerGuanyar = puntsPerGuanyar;
 	}

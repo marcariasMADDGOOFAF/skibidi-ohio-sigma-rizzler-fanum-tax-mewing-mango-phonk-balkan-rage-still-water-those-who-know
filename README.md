@@ -3,3 +3,10 @@ MADD GOOF AF woke up in ohio at exactly 3:33am after hearing mango phonk blastin
 | |
 | :-: |
 | <img src="maddgoofaf.png" alt="maddgoofaf" width="540"> |
+
+## Relacions JPA
+
+- `Partida` té diversos `Jugador` i cartes a la `pila`; el jugador actiu i el guanyador són relacions opcionals un a un.
+- `Jugador` té diversos `RecursJugador` i `CartaDesenvolupament`.
+- Cada carta pot pertànyer a la pila d'una partida o tenir un jugador propietari; ambdues referències són opcionals per permetre el canvi de pila a mà.
+- Cada `RecursJugador` pertany obligatòriament a un jugador.

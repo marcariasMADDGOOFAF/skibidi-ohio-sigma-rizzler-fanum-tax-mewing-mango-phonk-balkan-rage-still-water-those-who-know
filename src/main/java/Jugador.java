@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -8,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
@@ -53,6 +58,12 @@ public class Jugador {
 
     @OneToOne(mappedBy = "guanyador", fetch = FetchType.LAZY)
     private Partida partidaGuanyada;
+
+	@OneToMany(mappedBy = "jugador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<RecursJugador> recursos = new ArrayList<>();
+
+	@OneToMany(mappedBy = "propietari", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<CartaDesenvolupament> cartes = new ArrayList<>();
 	
 	public Jugador() {
 	}
