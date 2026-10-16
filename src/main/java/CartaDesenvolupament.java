@@ -39,8 +39,8 @@ public class CartaDesenvolupament {
 	private Partida partida;
 	
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@JoinColumn(name = "propietari_id")
-	private Jugador propietari;
+	@JoinColumn(name = "jugador_id")
+	private Jugador jugadorTitular;
 	
 	public Partida getPartida() {
 		return partida;
