@@ -10,11 +10,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "recurs_jugador")
+@Table(name = "recurs_jugador", uniqueConstraints = @UniqueConstraint(columnNames = {"jugador_id", "tipus"}))
 public class RecursJugador {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +30,7 @@ public class RecursJugador {
     @Column(name = "quantitat", nullable = false)
     private int quantitat;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "jugador_id", nullable = false)
     private Jugador jugador;
 

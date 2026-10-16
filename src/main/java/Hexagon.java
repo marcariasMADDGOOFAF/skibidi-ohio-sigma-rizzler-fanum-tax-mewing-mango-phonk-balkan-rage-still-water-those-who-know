@@ -1,5 +1,9 @@
 import org.hibernate.annotations.DynamicInsert;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,11 +14,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "gexagon")
+@Table(name = "hexagom")
 @DynamicInsert
 public class Hexagon {
     @Id
@@ -23,7 +29,7 @@ public class Hexagon {
     private Integer id;
 
     @NotNull (message = "El codi és obligatori")
-    @Column (name = "codi", nullable = false, unique = true)
+    @Column (name = "codi", nullable = false)
     private int codi;
 
     @NotNull (message = "El terreny és obligatori")
@@ -41,9 +47,12 @@ public class Hexagon {
     @Column (name = "r", nullable = false)
     private int r;
 
-    @ManyToOne (optional = false, fetch = FetchType.EAGER)
-    @JoinColumn (name = "partida_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "partida_id", nullable = false)
     private Partida partida;
+
+    @OneToMany(mappedBy = "hexagon", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<HexagonVertex> hexagonVertices = new ArrayList<>();
 
 
     public Hexagon() {

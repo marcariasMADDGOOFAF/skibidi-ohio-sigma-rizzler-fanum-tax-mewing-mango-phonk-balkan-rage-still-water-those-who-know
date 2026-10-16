@@ -1,4 +1,3 @@
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -7,29 +6,36 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table (name = "aresta")
+@Table(name = "aresta", uniqueConstraints = @UniqueConstraint(columnNames = {"partida_id", "codi"}))
 public class Aresta {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
     private Integer id;
 
-    @Column (name = "codi", nullable = false, unique = true)
+    @Column (name = "codi", nullable = false)
     private int codi;
 
-    @OneToMany (mappedBy = "vertex1", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Vertex vertex1;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vertex_a_id", nullable = false)
+    private Vertex vertexA;
 
-    @OneToMany (mappedBy = "vertex2", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Vertex vertex2;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vertex_b_id", nullable = false)
+    private Vertex vertexB;
 
-    @ManyToOne (optional = false, fetch = FetchType.EAGER)
-    @JoinColumn (name = "partida_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "partida_id", nullable = false)
     private Partida partida;
+
+    @OneToOne(mappedBy = "aresta", fetch = FetchType.LAZY, optional = true)
+    private Carretera carretera;
+
 
     public Aresta() {
     }

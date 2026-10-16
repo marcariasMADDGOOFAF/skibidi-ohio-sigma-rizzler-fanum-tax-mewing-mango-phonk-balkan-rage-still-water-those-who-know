@@ -65,12 +65,12 @@ public class Partida {
 	private List<Jugador> jugadors = new ArrayList<>();
 	
 	
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.EAGER, optional = true)
 	@JoinColumn(name = "jugador_actiu_id")
 	private Jugador actiu;
 	
 	
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.EAGER, optional = true)
 	@JoinColumn(name = "jugador_guanyador_id")
 	private Jugador guanyador;
 	
@@ -78,11 +78,11 @@ public class Partida {
 	private List<CartaDesenvolupament> pila = new ArrayList<>();
 
 	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Hexagon> hexagons = new ArrayList<>();
+    private List<Hexagon> tauler = new ArrayList<>();
 
 	@OneToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "hexagon_lladre_id")
-	private Hexagon hexagonLladre;
+	private Hexagon lladre;
 
 	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Aresta> arestes = new ArrayList<>();

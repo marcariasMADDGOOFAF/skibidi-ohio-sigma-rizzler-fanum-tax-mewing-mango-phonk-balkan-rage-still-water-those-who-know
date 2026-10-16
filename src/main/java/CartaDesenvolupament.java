@@ -33,15 +33,15 @@ public class CartaDesenvolupament {
 	@Column(name = "ronda_compra")
 	private Integer rondaCompra;
 
-	
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+
+	@ManyToOne(fetch = FetchType.EAGER, optional = true)
 	@JoinColumn(name = "partida_id")
 	private Partida partida;
-	
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+
+	@ManyToOne(fetch = FetchType.EAGER, optional = true)
 	@JoinColumn(name = "jugador_id")
 	private Jugador jugadorTitular;
-	
+
 	public Partida getPartida() {
 		return partida;
 	}
@@ -50,8 +50,6 @@ public class CartaDesenvolupament {
 		this.partida = partida;
 	}
 
-	
-	
 	public CartaDesenvolupament() {
 	}
 

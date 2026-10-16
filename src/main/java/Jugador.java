@@ -60,12 +60,12 @@ public class Jugador {
     private Partida partidaGuanyada;
 
 	@OneToMany(mappedBy = "jugador", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-	private List<RecursJugador> recursos = new ArrayList<>();
+	private List<RecursJugador> inventari = new ArrayList<>();
 
-	@OneToMany(mappedBy = "propietari", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	private List<CartaDesenvolupament> cartes = new ArrayList<>();
+	@OneToMany(mappedBy = "jugadorTitular", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<CartaDesenvolupament> ma = new ArrayList<>();
 
-	@OneToMany(mappedBy = "propietari", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "propietari", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<Construccio> construccions = new ArrayList<>();
 	
 	public Jugador() {
