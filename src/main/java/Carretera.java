@@ -16,7 +16,7 @@ public abstract class Carretera extends Construccio{
 	private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)     // referència de tornada
-    @JoinColumn(name = "aresta_id", nullable = false, unique = true)
+    @JoinColumn(name = "aresta_id", nullable = true, unique = true)
     private Aresta aresta;
 
     public Carretera(){
