@@ -31,8 +31,10 @@ public class Hexagon {
     @Column (name = "numero", length = 2, nullable = true)
     private Integer numero;
 
+    @NotNull (message = "La coordenada q és obligatoria")
     @Column (name = "q", nullable = false)
     private int q;
+    @NotNull (message = "La coordenada r és obligatoria")
     @Column (name = "r", nullable = false)
     private int r;
 
