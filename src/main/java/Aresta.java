@@ -1,8 +1,11 @@
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -15,6 +18,12 @@ public class Aresta {
 
     @Column (name = "codi", nullable = false, unique = true)
     private int codi;
+
+    @OneToMany (mappedBy = "vertex1", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Vertex vertex1;
+
+    @OneToMany (mappedBy = "vertex2", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Vertex vertex2;
 
     public Aresta() {
     }
