@@ -3,7 +3,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -15,8 +14,11 @@ public abstract class Assentament extends Construccio{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)     // referència de tornada
-    @JoinColumn(name = "vertex_id", nullable = false, unique = true)
+    @OneToOne(
+        mappedBy = "assentament",
+        fetch = FetchType.LAZY,
+        optional = false
+    )
     private Vertex vertex;
 
     public Assentament(){
@@ -34,7 +36,5 @@ public abstract class Assentament extends Construccio{
     public void setVertex(Vertex vertex) {
         this.vertex = vertex;
     }
-
-    
 
 }

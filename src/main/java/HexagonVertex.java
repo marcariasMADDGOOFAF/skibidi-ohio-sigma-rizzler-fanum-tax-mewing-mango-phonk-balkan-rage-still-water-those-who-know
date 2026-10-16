@@ -19,6 +19,10 @@ public class HexagonVertex {
 	@Column(name = "id")
     private Integer id;
 
+    @ManyToOne (fetch = FetchType.EAGER, optional = false)
+    @JoinColumn (name = "hexagon_id", nullable = false)
+    private Hexagon hexagon;
+
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn (name = "vertex_id", nullable = false)
     private Vertex vertex;
@@ -33,7 +37,8 @@ public class HexagonVertex {
     public HexagonVertex() {
     }
 
-    public HexagonVertex(Vertex vertex, Integer posicio) {
+    public HexagonVertex(Hexagon hexagon, Vertex vertex, Integer posicio) {
+        this.hexagon = hexagon;
         this.vertex = vertex;
         this.posicio = posicio;
     }
@@ -48,6 +53,14 @@ public class HexagonVertex {
 
     public void setVertex(Vertex vertex) {
         this.vertex = vertex;
+    }
+
+    public Hexagon getHexagon() {
+        return hexagon;
+    }
+
+    public void setHexagon(Hexagon hexagon) {
+        this.hexagon = hexagon;
     }
 
     public Integer getPosicio() {
