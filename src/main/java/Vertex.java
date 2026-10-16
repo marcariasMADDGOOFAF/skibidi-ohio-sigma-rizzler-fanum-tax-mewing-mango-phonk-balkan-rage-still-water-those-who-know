@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -32,6 +33,10 @@ public class Vertex {
     @NotNull (message = "El codi és obligatori")
     @Column (name = "codi", nullable = false, unique = true)
     private int codi;
+
+    @ManyToOne (optional = false, fetch = FetchType.EAGER)
+    @JoinColumn (name = "partida_id", nullable = false)
+    private Partida partida;
 
     public Vertex() {
     }

@@ -5,6 +5,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -24,6 +26,10 @@ public class Aresta {
 
     @OneToMany (mappedBy = "vertex2", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Vertex vertex2;
+
+    @ManyToOne (optional = false, fetch = FetchType.EAGER)
+    @JoinColumn (name = "partida_id", nullable = false)
+    private Partida partida;
 
     public Aresta() {
     }

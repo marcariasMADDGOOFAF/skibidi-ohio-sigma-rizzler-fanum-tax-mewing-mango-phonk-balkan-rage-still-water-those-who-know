@@ -14,11 +14,7 @@ public abstract class Assentament extends Construccio{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
-    @OneToOne(
-        mappedBy = "assentament",
-        fetch = FetchType.LAZY,
-        optional = false
-    )
+    @OneToOne (mappedBy = "assentament", fetch = FetchType.LAZY, optional = false)
     private Vertex vertex;
 
     public Assentament(){

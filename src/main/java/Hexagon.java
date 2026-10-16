@@ -4,9 +4,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 
@@ -37,6 +40,10 @@ public class Hexagon {
     @NotNull (message = "La coordenada r és obligatoria")
     @Column (name = "r", nullable = false)
     private int r;
+
+    @ManyToOne (optional = false, fetch = FetchType.EAGER)
+    @JoinColumn (name = "partida_id", nullable = false)
+    private Partida partida;
 
 
     public Hexagon() {
