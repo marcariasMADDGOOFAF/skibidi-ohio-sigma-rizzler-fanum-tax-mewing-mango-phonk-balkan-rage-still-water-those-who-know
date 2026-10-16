@@ -76,6 +76,19 @@ public class Partida {
 	
 	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<CartaDesenvolupament> pila = new ArrayList<>();
+
+	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Hexagon> hexagons = new ArrayList<>();
+
+	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "hexagon_lladre_id")
+	private Hexagon hexagonLladre;
+
+	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Aresta> arestes = new ArrayList<>();
+
+	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Vertex> vertexs = new ArrayList<>();
 	
 	
 	public Partida() {
