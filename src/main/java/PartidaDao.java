@@ -100,11 +100,13 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         Session session = SessionManager.getSessionFactory().getCurrentSession();
         try{
             session.beginTransaction();
-
+            String text = mostrarPartida(session,idPartida);
+            session.getTransaction().commit();
+            return text;
         }catch (RuntimeException e){
             handleException(session, e);
+            return Missatges.ERROR_BD;
         }
-        return "";
     }
     
     private String mostrarPartida(Session session, int id){
@@ -116,7 +118,39 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         sb.append("--- ESTAT PRINCIPAL DE LA PARTIDA ---\n");
         sb.append("Estat: ").append(p.getEstat()).append("\n");
         sb.append("Ronda Actual: ").append(p.getRonda()).append("\n");
-        sb.append("Jugador Actiu: ");
+        sb.append("Jugador Actiu: ").append(p.getActiu().getNom()).append("\n");
+        sb.append("Ultima Tirada: ").append(p.getUltimaTirada()).append("\n");
+
+        // Resum Jugadors
+        sb.append("--- ESTAT DE TOTS ELS JUGADORS ---\n");
+        for(Jugador j: p.getJugadors() ){
+            int punts = 0;
+            for (CartaDesenvolupament c : j.getMa()){
+                if(c.getTipus().toString().equals("PUNT_VICTORIA")){
+                    punts++;
+                }
+            }
+            int poblats=0,ciutats = 0,carreteres =0;
+            for(Construccio c : j.getConstruccions()){
+                if(c instanceof Poblat){
+                    poblats++;
+                } else if (c instanceof Carretera) {
+                    ciutats++;
+                }else {
+                    carreteres++;
+                }
+            }
+            sb.append("Punts de victoria: ").append(punts).append("\n");
+            sb.append("Poblats: ").append(poblats).append("\n");
+            sb.append("Ciutats: ").append(ciutats).append("\n");
+            sb.append("Carreteres: ").append(carreteres).append("\n");
+            sb.append("Nombre de recursos: ").append(j.getInventari().size());
+
+            return sb.toString();
+
+        }
+
+
         return "";
 
     }
