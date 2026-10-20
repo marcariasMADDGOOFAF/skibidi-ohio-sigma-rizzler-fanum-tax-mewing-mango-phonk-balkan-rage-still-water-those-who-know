@@ -32,7 +32,13 @@ public class Vertex {
 
     @NotNull (message = "El codi és obligatori")
     @Column (name = "codi", nullable = false)
-    private int codi;
+    private String codi;
+
+    @Column(name = "x", nullable = false)
+    private double x;
+
+    @Column(name = "y", nullable = false)
+    private double y;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "partida_id", nullable = false)
@@ -41,19 +47,26 @@ public class Vertex {
     public Vertex() {
     }
 
-    public Vertex(int codi) {
+    public Vertex(String codi) {
         this.codi = codi;
     }
 
-    public Integer getId() {
+    public Vertex(String codi, double x, double y, Partida partida) {
+        this.codi = codi;
+        this.x = x;
+        this.y = y;
+        this.partida = partida;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public int getCodi() {
+    public String getCodi() {
         return codi;
     }
 
-    public void setCodi(int codi) {
+    public void setCodi(String codi) {
         this.codi = codi;
     }
 }

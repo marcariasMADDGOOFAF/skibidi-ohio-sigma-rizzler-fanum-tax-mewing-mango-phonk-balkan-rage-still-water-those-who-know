@@ -37,6 +37,10 @@ public class HexagonVertex {
     public HexagonVertex() {
     }
 
+    public HexagonVertex(Integer id) {
+        this.id = id;
+    }
+
     public HexagonVertex(Hexagon hexagon, Vertex vertex, Integer posicio) {
         this.hexagon = hexagon;
         this.vertex = vertex;

@@ -1,6 +1,7 @@
 import java.util.List;
 
 public interface IPartidaDao extends IGenericDao<Partida, Integer>{
+    int carregarDades();
     int iniciarPartida(List<String> nomsJugadors);
     String mostrarTaula(int idPartida);
     String mostrarPartida(int idPartida);

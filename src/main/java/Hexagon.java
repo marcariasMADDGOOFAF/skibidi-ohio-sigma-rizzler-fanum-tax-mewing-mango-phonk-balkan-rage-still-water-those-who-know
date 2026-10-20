@@ -30,7 +30,7 @@ public class Hexagon {
 
     @NotNull (message = "El codi és obligatori")
     @Column (name = "codi", nullable = false)
-    private int codi;
+    private String codi;
 
     @NotNull (message = "El terreny és obligatori")
 	@Enumerated(EnumType.STRING)
@@ -58,23 +58,31 @@ public class Hexagon {
     public Hexagon() {
     }
 
-    public Hexagon(int codi, TipusTerreny terreny, Integer numero, int q, int r) {
+    public Hexagon(String codi) {
         this.codi = codi;
-        this.terreny = terreny;
-        this.numero = numero;
+    }
+
+    public Hexagon(
+            String codi,
+            int q,
+            int r,
+            Partida partida) {
+        this.codi = codi;
+        this.terreny = TipusTerreny.values()[Integer.parseInt(String.valueOf((int)(Math.random() * TipusTerreny.values().length)))];
         this.q = q;
         this.r = r;
+        this.partida = partida;
     }
 
     public Integer getId() {
         return id;
     }
 
-    public int getCodi() {
+    public String getCodi() {
         return codi;
     }
 
-    public void setCodi(int codi) {
+    public void setCodi(String codi) {
         this.codi = codi;
     }
 

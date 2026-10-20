@@ -19,7 +19,7 @@ public class Aresta {
     private Integer id;
 
     @Column (name = "codi", nullable = false)
-    private int codi;
+    private String codi;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "vertex_a_id", nullable = false)
@@ -40,8 +40,15 @@ public class Aresta {
     public Aresta() {
     }
 
-    public Aresta(int codi) {
+    public Aresta(String codi) {
         this.codi = codi;
+    }
+
+    public Aresta(String codi, Vertex vertexA, Vertex vertexB, Partida partida) {
+        this.codi = codi;
+        this.vertexA = vertexA;
+        this.vertexB = vertexB;
+        this.partida = partida;
     }
 
     public Integer getId() {
@@ -52,11 +59,11 @@ public class Aresta {
         this.id = id;
     }
 
-    public int getCodi() {
+    public String getCodi() {
         return codi;
     }
 
-    public void setCodi(int codi) {
+    public void setCodi(String codi) {
         this.codi = codi;
     }
 }

@@ -21,7 +21,7 @@ public class Main {
             System.out.println("Resultat de la comprovació: " + result);
         } catch (Exception e) {
             System.err.println("ERROR: no s'ha pogut inicialitzar o comprovar la base de dades.");
-            System.err.println("Revisa que MySQL estigui actiu i MYSQL_URL, MYSQL_USER i MYSQL_PASSWORD siguin correctes.");
+        System.err.println("Revisa que MySQL estigui actiu i MYSQL_URL, MYSQL_USER i MYSQL_PASSWORD siguin correctes.");
             e.printStackTrace();
             System.exit(1);
         }
