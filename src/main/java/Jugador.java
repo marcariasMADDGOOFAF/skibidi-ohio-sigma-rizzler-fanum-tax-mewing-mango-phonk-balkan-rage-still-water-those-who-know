@@ -113,4 +113,27 @@ public class Jugador {
 		this.cavallersJugats = cavallersJugats;
 	}
 
+	public Partida getPartida() {
+		return partida;
+	}
+
+	public Partida getPartidaActiva() {
+		return partidaActiva;
+	}
+
+	public Partida getPartidaGuanyada() {
+		return partidaGuanyada;
+	}
+
+	public List<RecursJugador> getInventari() {
+		return inventari;
+	}
+
+	public List<CartaDesenvolupament> getMa() {
+		return ma;
+	}
+
+	public List<Construccio> getConstruccions() {
+		return construccions;
+	}
 }
