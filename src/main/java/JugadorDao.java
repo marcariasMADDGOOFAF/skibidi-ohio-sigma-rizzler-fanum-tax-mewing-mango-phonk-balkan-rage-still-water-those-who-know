@@ -1,6 +1,9 @@
 import java.util.List;
 
 public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadroDao{
+
+
+
     @Override
     public void MostrarRecursos(int idJugador) {
 

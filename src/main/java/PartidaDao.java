@@ -1,3 +1,5 @@
+import org.hibernate.Session;
+
 import java.util.List;
 
 public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaDao{
@@ -7,12 +9,27 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
     }
 
     @Override
-    public void mostrarTaula(int idPartida) {
-
+    public String mostrarTaula(int idPartida) {
+        return "";
     }
 
     @Override
-    public void mostrarPartida(int idPartida) {
+    public String mostrarPartida(int idPartida) {
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
+        try{
+            session.beginTransaction();
+
+        }catch (RuntimeException e){
+            handleException(session, e);
+        }
+        return "";
+    }
+    private String mostrarPartida(Session session, int id){
+        Partida p = buscarPerId(session,Partida.class, id);
+        if(p== null){
+            return Missatges.PARTIDA_NO_EXISTEIX + ": "+id;
+        }
+        return "";
 
     }
 
@@ -22,8 +39,15 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
     }
 
     @Override
-    public void ComprovarVictoria(int idPartida) {
-
+    public String ComprovarVictoria(int idPartida) {
+        return "";
     }
 
+
+
+    public <E> E buscarPerId(Session session, Class<E> classe, int id) {
+        return session.createQuery("FROM " + classe.getName() + " e WHERE e.id = :id", classe)
+                .setParameter("id", id)
+                .uniqueResult();
+    }
 }
