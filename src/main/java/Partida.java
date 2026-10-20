@@ -89,8 +89,36 @@ public class Partida {
 
 	@OneToMany(mappedBy = "partida", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Vertex> vertexs = new ArrayList<>();
-	
-	
+
+
+	public List<Jugador> getJugadors() {
+		return jugadors;
+	}
+
+	public Jugador getActiu() {
+		return actiu;
+	}
+
+	public Jugador getGuanyador() {
+		return guanyador;
+	}
+
+	public List<Hexagon> getTauler() {
+		return tauler;
+	}
+
+	public Hexagon getLladre() {
+		return lladre;
+	}
+
+	public List<Aresta> getArestes() {
+		return arestes;
+	}
+
+	public List<Vertex> getVertexs() {
+		return vertexs;
+	}
+
 	public Partida() {
 	}
 

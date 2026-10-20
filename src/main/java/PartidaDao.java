@@ -29,6 +29,11 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         if(p== null){
             return Missatges.PARTIDA_NO_EXISTEIX + ": "+id;
         }
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- ESTAT PRINCIPAL DE LA PARTIDA ---\n");
+        sb.append("Estat: ").append(p.getEstat()).append("\n");
+        sb.append("Ronda Actual: ").append(p.getRonda()).append("\n");
+        sb.append("Jugador Actiu: ");
         return "";
 
     }
