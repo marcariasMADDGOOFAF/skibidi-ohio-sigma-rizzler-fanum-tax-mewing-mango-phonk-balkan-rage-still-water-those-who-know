@@ -1,6 +1,6 @@
 import java.util.List;
 
-public class JugadorDao implements IJugadroDao{
+public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadroDao{
     @Override
     public void MostrarRecursos(int idJugador) {
 
@@ -66,28 +66,5 @@ public class JugadorDao implements IJugadroDao{
         return List.of();
     }
 
-    @Override
-    public void saveOrUpdate(Jugador entity) {
 
-    }
-
-    @Override
-    public Jugador get(Integer integer) {
-        return null;
-    }
-
-    @Override
-    public void delete(Integer integer) {
-
-    }
-
-    @Override
-    public void delete(Jugador entity) {
-
-    }
-
-    @Override
-    public List<Jugador> list() {
-        return List.of();
-    }
 }
