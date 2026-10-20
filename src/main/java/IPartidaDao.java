@@ -6,5 +6,4 @@ public interface IPartidaDao extends IGenericDao<Partida, Integer>{
     void mostrarPartida(int idPartida);
     String tirarDaus(int idPartida);
     void ComprovarVictoria(int idPartida);
-
 }
