@@ -77,6 +77,11 @@ public class Jugador {
 		this.ordreTorn = ordreTorn;
 	}
 
+	public Jugador(String nom, ColorJugador color, int ordreTorn, Partida partida) {
+		this(nom, color, ordreTorn);
+		this.partida = partida;
+	}
+
 	public Integer getId() {
 		return id;
 	}

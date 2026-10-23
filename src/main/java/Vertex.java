@@ -58,6 +58,10 @@ public class Vertex {
         this.partida = partida;
     }
 
+    public void afegirHexagon(HexagonVertex hexagonVertex) {
+        hexagonVertices.add(hexagonVertex);
+    }
+
     public int getId() {
         return id;
     }
