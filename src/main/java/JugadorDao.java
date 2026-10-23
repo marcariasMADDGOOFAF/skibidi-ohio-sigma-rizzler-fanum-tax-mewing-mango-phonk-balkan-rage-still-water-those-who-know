@@ -1,9 +1,10 @@
 import org.hibernate.Session;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorDao {
-
 
 
     @Override
@@ -38,15 +39,100 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
 
     @Override
     public String PassarTorn(int idJugador) {
-        return "";
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
+        try{
+            session.beginTransaction();
+            String text = PassarTorn(session,idJugador);
+            session.getTransaction().commit();
+            return text;
+        }catch (RuntimeException e){
+            handleException(session, e);
+            return Missatges.ERROR_BD;
+        }
     }
 
-    private String PassarTorn(Session session, int id){
-        Jugador j = buscarPerId(session,Jugador.class,id);
+    private String PassarTorn(Session session, int id) {
+        Jugador j = get(id);
         if (j == null) {
-            return Missatges.PARTIDA_NO_EXISTEIX + ": " + id;
+            return Missatges.JUGADOR_NO_EXISTEIX + ": " + id;
         }
-        return "";
+        Partida p = j.getPartida();
+
+        if (p.getEstat() == EstatPartida.FINALITZADA) {
+            return Missatges.PARTIDA_FINALITZADA;
+        }
+        if (p.getActiu() == null || !p.getActiu().getId().equals(j.getId())) {
+            return Missatges.JUGADOR_NO_ACTIU;
+        }
+        if (p.isLladrePendent()) {
+            return Missatges.LLADRE_PENDENT;
+        }
+
+        List<Jugador> jugadors = new ArrayList<>(p.getJugadors());
+        jugadors.sort(Comparator.comparingInt(Jugador::getOrdreTorn));
+        int n = jugadors.size();
+        int pos = jugadors.indexOf(j);
+
+        if (p.getEstat() == EstatPartida.EN_CURS) {
+            if (!p.isDausTirats()) {
+                return Missatges.DAUS_NO_TIRATS;
+            }
+            if (pos == n - 1) {
+                p.setRonda(p.getRonda() + 1);
+                p.setActiu(jugadors.get(0));
+            } else {
+                p.setActiu(jugadors.get(pos + 1));
+            }
+            p.setDausTirats(false);
+            return Missatges.TORN_PASSAT + p.getActiu().getNom();
+        }
+
+        int ronda = p.getRonda();
+        int poblats = 0, carreteres = 0;
+        for (Construccio c : j.getConstruccions()) {
+            if (c instanceof Poblat) {
+                poblats++;
+            } else if (c instanceof Carretera) {
+                carreteres++;
+            }
+        }
+        if (poblats < ronda || carreteres < ronda) {
+            return Missatges.PREPARACIO_INCOMPLETA;
+        }
+
+        boolean tots = true;
+        for (Jugador altre : jugadors) {
+            int poblatsAltre = 0, carreteresAltre = 0;
+            for (Construccio c : altre.getConstruccions()) {
+                if (c instanceof Poblat) {
+                    poblatsAltre++;
+                } else if (c instanceof Carretera) {
+                    carreteresAltre++;
+                }
+            }
+            if (poblatsAltre < 2 || carreteresAltre < 2) {
+                tots = false;
+            }
+        }
+        if (tots) {
+            p.setEstat(EstatPartida.EN_CURS);
+            p.setRonda(1);
+            p.setActiu(jugadors.get(0));
+            p.setDausTirats(false);
+            return Missatges.PREPARACIO_ACABADA + p.getActiu().getNom();
+        }
+
+        if (ronda == 1) {
+            if (pos < n - 1) {
+                p.setActiu(jugadors.get(pos + 1));
+            } else {
+                p.setRonda(2);
+            }
+        } else if (pos > 0) {
+            p.setActiu(jugadors.get(pos - 1));
+        }
+        p.setDausTirats(false);
+        return Missatges.TORN_PASSAT + p.getActiu().getNom();
     }
 
     @Override
@@ -80,10 +166,6 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
     }
 
 
-    private <E> E buscarPerId(Session session, Class<E> classe, int id) {
-        return session.createQuery("FROM " + classe.getName() + " e WHERE e.id = :id", classe)
-                .setParameter("id", id)
-                .uniqueResult();
-    }
+
 
 }

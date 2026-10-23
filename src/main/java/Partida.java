@@ -99,6 +99,10 @@ public class Partida {
 		return actiu;
 	}
 
+	public void setActiu(Jugador actiu) {
+		this.actiu = actiu;
+	}
+
 	public Jugador getGuanyador() {
 		return guanyador;
 	}
