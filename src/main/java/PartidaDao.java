@@ -272,14 +272,23 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
 
     private String tirarDaus(Session session, int idPartida){
 
+        Partida p = get(idPartida);
+
         boolean tirats = session.createQuery("SELECT DISTINCT p.daus_tirats FROM Partida p WHERE p.id = :id", Boolean.class).setParameter("id", idPartida).uniqueResult();
         if (!tirats) {
             int dau1 = (int) Math.floor(Math.random()*6);
             int dau2 = (int) Math.floor(Math.random()*6);
             int numero = dau1 + dau2;
 
-            List<Hexagon> hexs = session.createQuery("SELECT DISTINCT h FROM Hexagons h WHERE numero = :numero", Hexagon.class).setParameter("numero", numero).getResultList();
+            p.setUltimaTirada(numero);
+            p.setDausTirats(true);
+
+            saveOrUpdate(p);
             
+
+            List<Hexagon> hexs = session.createQuery("SELECT DISTINCT h FROM Hexagons h WHERE numero = :numero AND numero != :lladre", Hexagon.class).setParameter("numero", numero).setParameter("lladre", p.getLladre()).getResultList();
+            
+
         }
 
         return "";
@@ -290,6 +299,7 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         return "";
     }
 
+    
 
 
     private List<String[]> llegirCsv(String fitxer) {

@@ -14,6 +14,27 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
 
     @Override
     public String ConstruirCarretera(int idJugador, int idAresta) {
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
+        try {
+            session.beginTransaction();
+            String daus = ConstruirCarretera(session, idJugador, idAresta);
+            session.getTransaction().commit();
+            return daus;
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        return "";
+    }
+
+    public String ConstruirCarretera(Session session, int idJugador, int idAresta) {
+
+        Jugador j = get(idJugador);
+
+
+        if (true) {
+            
+        }
+
         return "";
     }
 
