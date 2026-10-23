@@ -1,3 +1,5 @@
+import org.hibernate.Session;
+
 import java.util.List;
 
 public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorDao {
@@ -39,6 +41,14 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         return "";
     }
 
+    private String PassarTorn(Session session, int id){
+        Jugador j = buscarPerId(session,Jugador.class,id);
+        if (j == null) {
+            return Missatges.PARTIDA_NO_EXISTEIX + ": " + id;
+        }
+        return "";
+    }
+
     @Override
     public String ComprovarVictoria(int idPartida) {
         return "";
@@ -69,5 +79,11 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         return List.of();
     }
 
+
+    private <E> E buscarPerId(Session session, Class<E> classe, int id) {
+        return session.createQuery("FROM " + classe.getName() + " e WHERE e.id = :id", classe)
+                .setParameter("id", id)
+                .uniqueResult();
+    }
 
 }

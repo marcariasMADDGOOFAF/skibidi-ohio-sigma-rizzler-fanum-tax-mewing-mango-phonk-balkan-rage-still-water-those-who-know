@@ -110,50 +110,62 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         }
     }
     
-    private String mostrarPartida(Session session, int id){
-        Partida p = buscarPerId(session,Partida.class, id);
-        if(p== null){
-            return Missatges.PARTIDA_NO_EXISTEIX + ": "+id;
+    private String mostrarPartida(Session session, int id) {
+        Partida p = get(id);
+        if (p == null) {
+            return Missatges.PARTIDA_NO_EXISTEIX + ": " + id;
         }
         StringBuilder sb = new StringBuilder();
         sb.append("--- ESTAT PRINCIPAL DE LA PARTIDA ---\n");
         sb.append("Estat: ").append(p.getEstat()).append("\n");
         sb.append("Ronda Actual: ").append(p.getRonda()).append("\n");
-        sb.append("Jugador Actiu: ").append(p.getActiu().getNom()).append("\n");
+        sb.append("Jugador Actiu: ");
+        if(p.getActiu() != null){
+            sb.append(p.getActiu().getNom());
+        }else{
+            sb.append("-");
+        }
+        sb.append("-");
+
         sb.append("Ultima Tirada: ").append(p.getUltimaTirada()).append("\n");
 
         // Resum Jugadors
         sb.append("--- ESTAT DE TOTS ELS JUGADORS ---\n");
-        for(Jugador j: p.getJugadors() ){
+        for (Jugador j : p.getJugadors()) {
             int punts = 0;
-            for (CartaDesenvolupament c : j.getMa()){
-                if(c.getTipus().toString().equals("PUNT_VICTORIA")){
+            for (CartaDesenvolupament c : j.getMa()) {
+                if (c.getTipus() == TipusCarta.PUNT_VICTORIA) {
                     punts++;
                 }
             }
-            int poblats=0,ciutats = 0,carreteres =0;
-            for(Construccio c : j.getConstruccions()){
-                if(c instanceof Poblat){
+            int poblats = 0, ciutats = 0, carreteres = 0;
+            for (Construccio c : j.getConstruccions()) {
+                if (c instanceof Poblat) {
                     poblats++;
-                } else if (c instanceof Carretera) {
+                } else if (c instanceof Ciutat) {
                     ciutats++;
-                }else {
+                } else if (c instanceof Carretera) {
                     carreteres++;
                 }
             }
-            sb.append("Punts de victoria: ").append(punts).append("\n");
+
+            punts += poblats;
+            punts += ciutats * 2;
+
+            int totalRecursos = 0;
+            for (RecursJugador r : j.getInventari()) {
+                totalRecursos += r.getQuantitat();
+            }
+
+            sb.append("Jugador: ").append(j.getNom()).append("\n");
             sb.append("Poblats: ").append(poblats).append("\n");
             sb.append("Ciutats: ").append(ciutats).append("\n");
             sb.append("Carreteres: ").append(carreteres).append("\n");
-            sb.append("Nombre de recursos: ").append(j.getInventari().size());
-
-            return sb.toString();
-
+            sb.append("Punts de victoria totals: ").append(punts).append("\n");
+            sb.append("Nombre de recursos: ").append(totalRecursos).append("\n\n");
         }
 
-
-        return "";
-
+        return sb.toString();
     }
 
      @Override
@@ -192,11 +204,6 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
 
 
 
-    public <E> E buscarPerId(Session session, Class<E> classe, int id) {
-        return session.createQuery("FROM " + classe.getName() + " e WHERE e.id = :id", classe)
-                .setParameter("id", id)
-                .uniqueResult();
-    }
     private List<String[]> llegirCsv(String fitxer) {
 		InputStream is = PartidaDao.class.getResourceAsStream(CARPETA_DADES + fitxer);
 		if (is == null) {

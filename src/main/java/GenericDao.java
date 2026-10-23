@@ -16,12 +16,19 @@ public class GenericDao<T, ID extends Serializable> implements IGenericDao<T, ID
 	@Override
 	public void saveOrUpdate(T entity) {
 		Session session = sessionFactory.getCurrentSession();
+		boolean propia = !session.getTransaction().isActive();
 		try {
-			// Tota operació de modificació necessita una transacció
-			session.beginTransaction();
+			if (propia) {
+				session.beginTransaction();
+			}
 			session.merge(entity);
-			session.getTransaction().commit();
+			if (propia) {
+				session.getTransaction().commit();
+			}
 		} catch (RuntimeException e) {
+			if (!propia) {
+				throw e;
+			}
 			handleException(session, e);
 		}
 	}
@@ -29,12 +36,20 @@ public class GenericDao<T, ID extends Serializable> implements IGenericDao<T, ID
 	@Override
 	public T get(ID id) {
 		Session session = sessionFactory.getCurrentSession();
+		boolean propia = !session.getTransaction().isActive();
 		try {
-			session.beginTransaction();
+			if (propia) {
+				session.beginTransaction();
+			}
 			T entity = session.get(getEntityClass(), id);
-			session.getTransaction().commit();
+			if (propia) {
+				session.getTransaction().commit();
+			}
 			return entity;
 		} catch (RuntimeException e) {
+			if (!propia) {
+				throw e;
+			}
 			handleException(session, e);
 			return null;
 		}
@@ -43,16 +58,24 @@ public class GenericDao<T, ID extends Serializable> implements IGenericDao<T, ID
 	@Override
 	public void delete(ID id) {
 		Session session = sessionFactory.getCurrentSession();
+		boolean propia = !session.getTransaction().isActive();
 		try {
-			session.beginTransaction();
+			if (propia) {
+				session.beginTransaction();
+			}
 			T entity = session.get(getEntityClass(), id);
 			if (entity != null) {
 				session.remove(entity);
 			} else {
 				System.out.println("No existeix aquest ID");
 			}
-			session.getTransaction().commit();
+			if (propia) {
+				session.getTransaction().commit();
+			}
 		} catch (RuntimeException e) {
+			if (!propia) {
+				throw e;
+			}
 			handleException(session, e);
 		}
 	}
@@ -60,11 +83,19 @@ public class GenericDao<T, ID extends Serializable> implements IGenericDao<T, ID
 	@Override
 	public void delete(T entity) {
 		Session session = sessionFactory.getCurrentSession();
+		boolean propia = !session.getTransaction().isActive();
 		try {
-			session.beginTransaction();
+			if (propia) {
+				session.beginTransaction();
+			}
 			session.remove(session.merge(entity));
-			session.getTransaction().commit();
+			if (propia) {
+				session.getTransaction().commit();
+			}
 		} catch (RuntimeException e) {
+			if (!propia) {
+				throw e;
+			}
 			handleException(session, e);
 		}
 	}
@@ -72,13 +103,21 @@ public class GenericDao<T, ID extends Serializable> implements IGenericDao<T, ID
 	@Override
 	public List<T> list() {
 		Session session = sessionFactory.getCurrentSession();
+		boolean propia = !session.getTransaction().isActive();
 		try {
-			session.beginTransaction();
+			if (propia) {
+				session.beginTransaction();
+			}
 			List<T> entities = session.createQuery("FROM " + getEntityClass().getName(), getEntityClass())
 					.getResultList();
-			session.getTransaction().commit();
+			if (propia) {
+				session.getTransaction().commit();
+			}
 			return entities;
 		} catch (RuntimeException e) {
+			if (!propia) {
+				throw e;
+			}
 			handleException(session, e);
 			return null;
 		}
