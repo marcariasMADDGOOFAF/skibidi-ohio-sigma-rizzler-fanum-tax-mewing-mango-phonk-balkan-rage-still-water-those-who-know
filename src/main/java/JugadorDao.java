@@ -1,32 +1,32 @@
 import java.util.List;
 
-public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadroDao{
+public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorDao {
 
 
 
     @Override
-    public void MostrarRecursos(int idJugador) {
-
+    public String MostrarRecursos(int idJugador) {
+        return "";
     }
 
     @Override
-    public void ConstruirCarretera(int idJugador, int idAresta) {
-
+    public String ConstruirCarretera(int idJugador, int idAresta) {
+        return "";
     }
 
     @Override
-    public void ConstruirPoblat(int idJugador, int idVertex) {
-
+    public String ConstruirPoblat(int idJugador, int idVertex) {
+        return "";
     }
 
     @Override
-    public void MillorarACiutat(int idJugador, int idVertex) {
-
+    public String MillorarACiutat(int idJugador, int idVertex) {
+        return "";
     }
 
     @Override
-    public void ComerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep) {
-
+    public String ComerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep) {
+        return "";
     }
 
     @Override
@@ -35,33 +35,33 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadroD
     }
 
     @Override
-    public void PassarTorn(int idJugador) {
-
+    public String PassarTorn(int idJugador) {
+        return "";
     }
 
     @Override
-    public void ComprovarVictoria(int idPartida) {
-
+    public String ComprovarVictoria(int idPartida) {
+        return "";
     }
 
     @Override
-    public void MoureLladre(int idJugador, int idHexagon, Integer idJugadorVictima) {
-
+    public String MoureLladre(int idJugador, int idHexagon, Integer idJugadorVictima) {
+        return "";
     }
 
     @Override
-    public void ComprarCarta(int idJugador) {
-
+    public String ComprarCarta(int idJugador) {
+        return "";
     }
 
     @Override
-    public void JugarCarta(int idJugador, int idCarta, TipusRecurs recurs) {
-
+    public String JugarCarta(int idJugador, int idCarta, TipusRecurs recurs) {
+        return "";
     }
 
     @Override
-    public void ExercitMesGran(int idPartida) {
-
+    public String ExercitMesGran(int idPartida) {
+        return "";
     }
 
     @Override
