@@ -32,6 +32,14 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         return "";
     }
 
+    private String ComerciarBanca(Session session, int idJugador, TipusRecurs dona, TipusRecurs rep) {
+        Jugador j = get(idJugador);
+        if (j == null) {
+            return Missatges.JUGADOR_NO_EXISTEIX + ": " + idJugador;
+        }
+        return "";
+    }
+
     @Override
     public int CalcularPunts(int idJugador) {
         return 0;
