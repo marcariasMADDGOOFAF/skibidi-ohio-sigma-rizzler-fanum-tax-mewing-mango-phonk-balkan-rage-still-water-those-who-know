@@ -1,4 +1,5 @@
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -155,8 +156,32 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
 
     }
 
-    @Override
+     @Override
     public String tirarDaus(int idPartida) {
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
+        try {
+            session.beginTransaction();
+            String daus = tirarDaus(session, idPartida);
+            session.getTransaction().commit();
+            return daus;
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        return "";
+    }
+
+    private String tirarDaus(Session session, int idPartida){
+
+        boolean tirats = session.createQuery("SELECT DISTINCT p.daus_tirats FROM Partida p WHERE p.id = :id", Boolean.class).setParameter("id", idPartida).uniqueResult();
+        if (!tirats) {
+            int dau1 = (int) Math.floor(Math.random()*6);
+            int dau2 = (int) Math.floor(Math.random()*6);
+            int numero = dau1 + dau2;
+
+            List<Hexagon> hexs = session.createQuery("SELECT DISTINCT h FROM Hexagons h WHERE numero = :numero", Hexagon.class).setParameter("numero", numero).getResultList();
+            
+        }
+
         return "";
     }
 
