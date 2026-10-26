@@ -15,6 +15,8 @@ public final class Missatges {
     public static final String PREPARACIO_INCOMPLETA = "Has de colocar el poblat i la carretera d'aquest torn abans de passar";
     public static final String TORN_PASSAT = "Torn passat toca jugar: ";
     public static final String PREPARACIO_ACABADA = "Preparacio acabada. La partida ara esta en EN_CURS, toca jugar: ";
+    public static final String NUM_JUGADORS_INVALID = "El nombre de jugadors ha de ser entre 2 i 4" ;
+    public static final String COUNT_HEXAGONS = "S'esperaven 19 hexàgons als CSV";
     public static final String COMERCIAR_MATEIX_TYPE = "No pots intercanviar donant el mateix item que reps! ";
     public static final String COMERCIAR_NO_SUFICIENT_DONA = "No pots intercanviar Si no tens 4 de el recurs que dones! ";
     public static final String PARTIDA_NO_EN_CURS = "La partida no esta en curs";

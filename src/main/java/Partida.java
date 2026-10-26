@@ -91,6 +91,27 @@ public class Partida {
     private List<Vertex> vertexs = new ArrayList<>();
 
 
+	// Metodes auxiliars
+	protected void afegirJugador(Jugador jugador) {
+		jugadors.add(jugador);
+	}
+
+	protected void afegirHexagon(Hexagon hexagon) {
+		tauler.add(hexagon);
+	}
+
+	protected void afegirAresta(Aresta aresta) {
+		arestes.add(aresta);
+	}
+
+	protected void afegirVertex(Vertex vertex) {
+		vertexs.add(vertex);
+	}
+
+	public void setLladre(Hexagon lladre) {
+		this.lladre = lladre;
+	}
+
 	public List<Jugador> getJugadors() {
 		return jugadors;
 	}
@@ -127,15 +148,22 @@ public class Partida {
 		return vertexs;
 	}
 
-	public Partida() {
-	}
-
 	public List<CartaDesenvolupament> getPila() {
 		return this.pila;
 	}
 	
 	public Partida(int puntsPerGuanyar) {
 		this.puntsPerGuanyar = puntsPerGuanyar;
+	}
+
+	public Partida() {
+		this.estat = EstatPartida.PREPARACIO;
+		this.ronda = 0;
+		this.ultimaTirada = 0;
+		this.puntsPerGuanyar = 10;
+		this.dausTirats = false;
+		this.lladrePendent = true;
+
 	}
 
 	public Integer getId() {

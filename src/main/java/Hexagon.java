@@ -68,11 +68,16 @@ public class Hexagon {
             int r,
             Partida partida) {
         this.codi = codi;
-        this.terreny = TipusTerreny.values()[Integer.parseInt(String.valueOf((int)(Math.random() * TipusTerreny.values().length)))];
         this.q = q;
         this.r = r;
         this.partida = partida;
     }
+
+    public void afegirVertex(HexagonVertex hexagonVertex) {
+        hexagonVertices.add(hexagonVertex);
+    }
+
+    public String getCodi() { return codi; }
 
     public Integer getId() {
         return id;
