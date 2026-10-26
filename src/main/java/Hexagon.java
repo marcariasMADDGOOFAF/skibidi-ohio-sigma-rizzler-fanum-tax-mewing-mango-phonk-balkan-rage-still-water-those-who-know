@@ -83,9 +83,6 @@ public class Hexagon {
         return id;
     }
 
-    public String getCodi() {
-        return codi;
-    }
 
     public void setCodi(String codi) {
         this.codi = codi;
