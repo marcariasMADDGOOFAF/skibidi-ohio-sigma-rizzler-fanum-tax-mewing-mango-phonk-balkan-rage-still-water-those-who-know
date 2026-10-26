@@ -53,6 +53,15 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
 
         Jugador j = get(idJugador);
 
+        Partida p = j.getPartida();
+
+        if (p.getActiu() == j) {
+
+
+            
+            
+        }
+
 
         if (true) {
             
