@@ -185,7 +185,29 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
     }
 
     public String mostrarTauler(int idPartida) {
-        return "";
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
+        try{
+            session.beginTransaction();
+            String text = mostrarTauler(session,idPartida);
+            session.getTransaction().commit();
+            return text;
+        }catch (RuntimeException e){
+            handleException(session, e);
+            return Missatges.ERROR_BD;
+        }
+    }
+
+    private String mostrarTauler(Session session, int id) {
+        Partida p = get(id);
+        if (p == null) {
+            return Missatges.PARTIDA_NO_EXISTEIX + ": " + id;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- ESTAT DEL TAULER DE LA PARTIDA ---\n");
+        for (Hexagon h : p.getTauler()) {
+            sb.append("Hexagon: ").append(h.getCodi()).append(", Terreny: ").append(h.getTerreny()).append(", Numero: ").append(h.getNumero()).append("\n");
+        }
+        return sb.toString();
     }
 
     @Override

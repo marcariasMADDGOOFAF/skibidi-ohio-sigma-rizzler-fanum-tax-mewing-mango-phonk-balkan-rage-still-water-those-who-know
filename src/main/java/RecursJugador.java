@@ -45,17 +45,22 @@ public class RecursJugador {
 
     public Integer getId() { 
     	return id;
-    	}
+    }
+
     public TipusRecurs getTipus() {
     	return tipus;
-    	}
+    }
+
     public void setTipus(TipusRecurs tipus) { 
     	this.tipus = tipus; 
-    	}
+    }
+
     public int getQuantitat() {
     	return quantitat; 
-    	}
+    }
+
     public void setQuantitat(int quantitat) { 
     	this.quantitat = quantitat; 
-    	}
+    }
+    
 }

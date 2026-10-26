@@ -10,7 +10,29 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
 
     @Override
     public String MostrarRecursos(int idJugador) {
-        return "";
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
+        try{
+            session.beginTransaction();
+            String text = MostrarRecursos(session,idJugador);
+            session.getTransaction().commit();
+            return text;
+        }catch (RuntimeException e){
+            handleException(session, e);
+            return Missatges.ERROR_BD;
+        }
+    }
+
+    private String MostrarRecursos(Session session, int id) {
+        Jugador p = get(id);
+        if (p == null) {
+            return Missatges.JUGADOR_NO_EXISTEIX + ": " + id;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- ESTAT DE L'INVENTARI DE ").append(p.getNom()).append(" ---\n");
+        for (RecursJugador r : p.getInventari()) {
+            sb.append("Recurs: ").append(r.getTipus()).append(", Quantitat: ").append(r.getQuantitat()).append("\n");
+        }
+        return sb.toString();
     }
 
     @Override
