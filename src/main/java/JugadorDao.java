@@ -1,3 +1,4 @@
+import com.mysql.cj.protocol.x.ReusableOutputStream;
 import org.hibernate.Session;
 
 import java.util.ArrayList;
@@ -29,7 +30,16 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
 
     @Override
     public String ComerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep) {
-        return "";
+        Session session = sessionFactory.getCurrentSession();
+        try {
+            session.beginTransaction();
+            String text = ComerciarBanca(session, idJugador, dona, rep);
+            session.getTransaction().commit();
+            return text;
+        } catch (RuntimeException e) {
+            handleException(session, e);
+            return Missatges.ERROR_BD;
+        }
     }
 
     private String ComerciarBanca(Session session, int idJugador, TipusRecurs dona, TipusRecurs rep) {
@@ -37,7 +47,45 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         if (j == null) {
             return Missatges.JUGADOR_NO_EXISTEIX + ": " + idJugador;
         }
-        return "";
+        Partida p = j.getPartida();
+        if (p.getEstat() == EstatPartida.FINALITZADA) {
+            return Missatges.PARTIDA_FINALITZADA;
+        }
+        if (p.getEstat() != EstatPartida.EN_CURS) {
+            return Missatges.PARTIDA_NO_EN_CURS;
+        }
+        if (p.getActiu() == null || !p.getActiu().getId().equals(j.getId())) {
+            return Missatges.JUGADOR_NO_ACTIU;
+        }
+        if (!p.isDausTirats()) {
+            return Missatges.DAUS_NO_TIRATS;
+        }
+        if (p.isLladrePendent()) {
+            return Missatges.COMERCIAR_LLADRE_PENDENT;
+        }
+        if (dona == rep) {
+            return Missatges.COMERCIAR_MATEIX_TYPE;
+        }
+
+        RecursJugador recursDonat = null;
+        RecursJugador recursRebut = null;
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == dona) {
+                recursDonat = r;
+            } else if (r.getTipus() == rep) {
+                recursRebut = r;
+            }
+        }
+        if (recursDonat == null || recursDonat.getQuantitat() < 4) {
+            return Missatges.COMERCIAR_NO_SUFICIENT_DONA;
+        }
+        if (recursRebut == null) {
+            return Missatges.ERROR_BD;
+        }
+
+        recursDonat.setQuantitat(recursDonat.getQuantitat() - 4);
+        recursRebut.setQuantitat(recursRebut.getQuantitat() + 1);
+        return Missatges.COMERCIAR_FET + "4 " + dona + " = 1 " + rep;
     }
 
     @Override

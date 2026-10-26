@@ -199,7 +199,68 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
 
     @Override
     public String ComprovarVictoria(int idPartida) {
-        return "";
+        Session session = sessionFactory.getCurrentSession();
+        try {
+            session.beginTransaction();
+            String text = ComprovarVictoria(session, idPartida);
+            session.getTransaction().commit();
+            return text;
+        } catch (RuntimeException e) {
+            handleException(session, e);
+            return Missatges.ERROR_BD;
+        }
+    }
+
+    private String ComprovarVictoria(Session session, int idPartida) {
+        Partida p = get(idPartida);
+        if (p == null) {
+            return Missatges.PARTIDA_NO_EXISTEIX + ": " + idPartida;
+        }
+        if (p.getEstat() == EstatPartida.FINALITZADA) {
+            return Missatges.PARTIDA_FINALITZADA;
+        }
+
+        List<Jugador> jugadors = p.getJugadors();
+        Jugador exercitMesGran = null;
+        int maxCavallers = 2;
+        for (Jugador j : jugadors) {
+            if (j.getCavallersJugats() > maxCavallers) {
+                maxCavallers = j.getCavallersJugats();
+                exercitMesGran = j;
+            } else if (j.getCavallersJugats() == maxCavallers) {
+                exercitMesGran = null;
+            }
+        }
+
+        Jugador guanyador = null;
+        for (Jugador j : jugadors) {
+            int punts = 0;
+            for (Construccio c : j.getConstruccions()) {
+                if (c instanceof Poblat) {
+                    punts++;
+                } else if (c instanceof Ciutat) {
+                    punts += 2;
+                }
+            }
+            for (CartaDesenvolupament c : j.getMa()) {
+                if (c.getTipus() == TipusCarta.PUNT_VICTORIA) {
+                    punts++;
+                }
+            }
+            if (j == exercitMesGran) {
+                punts += 2;
+            }
+            if (punts >= p.getPuntsPerGuanyar() && (guanyador == null || j.getOrdreTorn() < guanyador.getOrdreTorn())) {
+                guanyador = j;
+            }
+        }
+
+        if (guanyador == null) {
+            return Missatges.VICTORIA_PENDENT;
+        }
+        p.setGuanyador(guanyador);
+        p.setEstat(EstatPartida.FINALITZADA);
+        return Missatges.VICTORIA + guanyador.getNom();
     }
 
 

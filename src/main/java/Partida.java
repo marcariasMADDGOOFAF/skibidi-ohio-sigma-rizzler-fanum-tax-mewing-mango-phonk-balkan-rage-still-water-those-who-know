@@ -107,6 +107,10 @@ public class Partida {
 		return guanyador;
 	}
 
+	public void setGuanyador(Jugador guanyador) {
+		this.guanyador = guanyador;
+	}
+
 	public List<Hexagon> getTauler() {
 		return tauler;
 	}
