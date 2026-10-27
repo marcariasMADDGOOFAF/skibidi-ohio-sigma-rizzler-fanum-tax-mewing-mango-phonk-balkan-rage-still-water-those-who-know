@@ -7,12 +7,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import org.hibernate.annotations.Check;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table (name = "hexagon_vertex")
+@Table(name = "hexagon_vertex", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"hexagon_id", "vertex_id"}),
+    @UniqueConstraint(columnNames = {"hexagon_id", "posicio"})
+})
+@Check(constraints = "posicio BETWEEN 0 AND 5")
 public class HexagonVertex {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
