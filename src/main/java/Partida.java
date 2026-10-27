@@ -1,4 +1,5 @@
 import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.Check;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "Partida")
+@Check(constraints = "ronda >= 1 AND punts_per_guanyar >= 1 AND (ultima_tirada = 0 OR ultima_tirada BETWEEN 2 AND 12)")
 @DynamicInsert
 public class Partida {
 
@@ -44,7 +46,7 @@ public class Partida {
 	@Column(name = "ronda", nullable = false)
 	private int ronda = 1;
 
-	@Min(value = 2, message = "La tirada ha de ser minim 2")
+	@Min(value = 0, message = "La tirada no pot ser negativa")
 	@Max(value =12, message = "La tirada ha de ser Maxim 12")
 	@Column(name = "ultima_tirada", nullable = false)
 	private int ultimaTirada;
@@ -153,16 +155,17 @@ public class Partida {
 	}
 	
 	public Partida(int puntsPerGuanyar) {
+		this();
 		this.puntsPerGuanyar = puntsPerGuanyar;
 	}
 
 	public Partida() {
 		this.estat = EstatPartida.PREPARACIO;
-		this.ronda = 0;
+		this.ronda = 1;
 		this.ultimaTirada = 0;
 		this.puntsPerGuanyar = 10;
 		this.dausTirats = false;
-		this.lladrePendent = true;
+		this.lladrePendent = false;
 
 	}
 
