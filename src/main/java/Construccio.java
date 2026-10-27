@@ -39,6 +39,14 @@ public abstract class Construccio {
         this.id = id;
     }
 
+    public Jugador getPropietari() {
+        return propietari;
+    }
+
+    public void setPropietari(Jugador propietari) {
+        this.propietari = propietari;
+    }
+
     
     
 }
