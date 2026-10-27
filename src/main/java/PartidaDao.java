@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Collections;
+import java.util.Comparator;
 
 
 public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaDao{
@@ -38,13 +39,8 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
 
     private int carregarDades(Session session) {
         Partida partida = new Partida();
-        partida.setUltimaTirada(7);
         session.persist(partida);
-
-        Map<String, Hexagon> hexagons = carregarHexagons(session, partida);
-        Map<String, Vertex> vertexs = carregarVertexs(session, partida);
-        carregarHexagonVertexs(session, hexagons, vertexs);
-        carregarArestes(session, vertexs, partida);
+        carregarTopologia(session, partida);
         return 0;
     }
 
@@ -53,7 +49,6 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         Map<String, Vertex> vertexs = carregarVertexs(session, partida);
         carregarHexagonVertexs(session, hexagons, vertexs);
         carregarArestes(session, vertexs, partida);
-        assignarTerrenysINumeros(hexagons);
     }
 
     private void assignarTerrenysINumeros(Map<String, Hexagon> hexagons) {
@@ -131,10 +126,14 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         Map<String, Hexagon> hexagons = new HashMap<>();
         for (String[] c : llegirCsv(ARXIU_HEXAGONS)) {
 			Hexagon e = new Hexagon(c[0], Integer.parseInt(c[1]), Integer.parseInt(c[2]), partida);
-			session.persist(e);
 			partida.afegirHexagon(e);
 			hexagons.put(c[0], e);
 		}
+
+        assignarTerrenysINumeros(hexagons);
+        for (Hexagon hexagon : hexagons.values()) {
+            session.persist(hexagon);
+        }
 		return hexagons;
     }
 
@@ -151,12 +150,10 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
 
     @Override
     public int iniciarPartida(List<String> nomsJugadors) {
-        Session session = SessionManager.getSessionFactory().getCurrentSession();
-        if(nomsJugadors.size() < 2 || nomsJugadors.size() > 4){
-            session.getTransaction().rollback();
-            System.out.println(Missatges.NUM_JUGADORS_INVALID);
+        if(nomsJugadors == null || nomsJugadors.size() < 2 || nomsJugadors.size() > 4){
             return -1;
         }
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
         List<String> jugadorsMixed = new ArrayList<>(nomsJugadors);
         java.util.Collections.shuffle(jugadorsMixed);
         int ordre = 1;
@@ -168,8 +165,14 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
             carregarTopologia(session, partida);
             for(String nom: jugadorsMixed){
                 Jugador jugador = new Jugador(nom, colors[ordre - 1], ordre, partida);
+                for (TipusRecurs tipus : TipusRecurs.values()) {
+                    jugador.getInventari().add(new RecursJugador(tipus, 0, jugador));
+                }
                 session.persist(jugador);
                 partida.afegirJugador(jugador);
+                if (ordre == 1) {
+                    partida.setActiu(jugador);
+                }
                 ordre++;
             }
             Hexagon desert = partida.getTauler().stream()
@@ -184,6 +187,7 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         }
     }
 
+    @Override
     public String mostrarTauler(int idPartida) {
         Session session = SessionManager.getSessionFactory().getCurrentSession();
         try{
@@ -204,8 +208,26 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         }
         StringBuilder sb = new StringBuilder();
         sb.append("--- ESTAT DEL TAULER DE LA PARTIDA ---\n");
-        for (Hexagon h : p.getTauler()) {
-            sb.append("Hexagon: ").append(h.getCodi()).append(", Terreny: ").append(h.getTerreny()).append(", Numero: ").append(h.getNumero()).append("\n");
+        List<Hexagon> hexagons = session.createNamedQuery("Hexagon.taulerPerPartida", Hexagon.class)
+                .setParameter("idPartida", id).getResultList();
+        for (Hexagon h : hexagons) {
+            sb.append("Hexagon: ").append(h.getCodi()).append(", Terreny: ").append(h.getTerreny())
+                    .append(", Numero: ").append(h.getNumero());
+            if (p.getLladre() != null && p.getLladre().getId().equals(h.getId())) {
+                sb.append(", Lladre: SI");
+            }
+            sb.append("\n");
+            List<HexagonVertex> vertexs = new ArrayList<>(h.getHexagonVertices());
+            vertexs.sort(Comparator.comparingInt(HexagonVertex::getPosicio));
+            for (HexagonVertex hv : vertexs) {
+                Assentament assentament = hv.getVertex().getAssentament();
+                if (assentament != null) {
+                    sb.append("  Vertex: ").append(hv.getVertex().getCodi())
+                            .append(", Posicio: ").append(hv.getPosicio())
+                            .append(", Construccio: ").append(assentament instanceof Ciutat ? "Ciutat" : "Poblat")
+                            .append(", Propietari: ").append(assentament.getPropietari().getNom()).append("\n");
+                }
+            }
         }
         return sb.toString();
     }

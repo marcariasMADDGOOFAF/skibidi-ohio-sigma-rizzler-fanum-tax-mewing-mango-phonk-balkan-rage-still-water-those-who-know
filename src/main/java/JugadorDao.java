@@ -29,7 +29,8 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         }
         StringBuilder sb = new StringBuilder();
         sb.append("--- ESTAT DE L'INVENTARI DE ").append(p.getNom()).append(" ---\n");
-        for (RecursJugador r : p.getInventari()) {
+        for (RecursJugador r : session.createNamedQuery("RecursJugador.perJugador", RecursJugador.class)
+                .setParameter("idJugador", id).getResultList()) {
             sb.append("Recurs: ").append(r.getTipus()).append(", Quantitat: ").append(r.getQuantitat()).append("\n");
         }
         return sb.toString();

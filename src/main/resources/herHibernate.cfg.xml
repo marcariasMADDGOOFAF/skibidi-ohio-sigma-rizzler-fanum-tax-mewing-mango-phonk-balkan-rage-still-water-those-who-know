@@ -12,6 +12,7 @@
 
         <!-- Crea las tablas que falten sin borrar los datos que ya existan. -->
         <property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="hibernate.current_session_context_class">thread</property>
         <property name="hibernate.show_sql">true</property>
         <property name="hibernate.format_sql">true</property>
         <property name="hibernate.highlight_sql">true</property>
