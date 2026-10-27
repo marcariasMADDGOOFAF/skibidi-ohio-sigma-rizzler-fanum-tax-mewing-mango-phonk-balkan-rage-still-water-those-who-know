@@ -1,4 +1,5 @@
 import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.Check;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +19,12 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 
 @Entity
-@Table(name = "hexagom")
+@Table(name = "hexagom", uniqueConstraints = @UniqueConstraint(columnNames = {"partida_id", "codi"}))
+@Check(constraints = "numero IS NULL OR (numero BETWEEN 2 AND 12 AND numero <> 7)")
 @DynamicInsert
 public class Hexagon {
     @Id
@@ -29,7 +33,7 @@ public class Hexagon {
     private Integer id;
 
     @NotNull (message = "El codi és obligatori")
-    @Column (name = "codi", nullable = false)
+    @Column (name = "codi", nullable = false, length = 10)
     private String codi;
 
     @NotNull (message = "El terreny és obligatori")
@@ -37,7 +41,9 @@ public class Hexagon {
 	@Column(name = "terreny", nullable = false, length = 10)
     private TipusTerreny terreny;
 
-    @Column (name = "numero", length = 2, nullable = true)
+    @Min(value = 2, message = "El número ha de ser com a mínim 2")
+    @Max(value = 12, message = "El número ha de ser com a màxim 12")
+    @Column (name = "numero", nullable = true)
     private Integer numero;
 
     @NotNull (message = "La coordenada q és obligatoria")
@@ -81,6 +87,14 @@ public class Hexagon {
 
     public Integer getId() {
         return id;
+    }
+
+    public Partida getPartida() {
+        return partida;
+    }
+
+    public List<HexagonVertex> getHexagonVertices() {
+        return hexagonVertices;
     }
 
 
