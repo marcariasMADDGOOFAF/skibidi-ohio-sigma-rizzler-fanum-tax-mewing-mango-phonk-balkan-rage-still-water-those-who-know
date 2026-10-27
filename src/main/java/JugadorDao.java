@@ -1,4 +1,4 @@
-import com.mysql.cj.protocol.x.ReusableOutputStream;
+
 import org.hibernate.Session;
 
 import java.util.ArrayList;
@@ -86,7 +86,7 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         Session session = sessionFactory.getCurrentSession();
         try {
             session.beginTransaction();
-            String text = ComerciarBanca(session, idJugador, dona, rep);
+            String text = executarComerciarBanca(idJugador, dona, rep);
             session.getTransaction().commit();
             return text;
         } catch (RuntimeException e) {
@@ -95,7 +95,7 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         }
     }
 
-    private String ComerciarBanca(Session session, int idJugador, TipusRecurs dona, TipusRecurs rep) {
+    private String executarComerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep) {
         Jugador j = get(idJugador);
         if (j == null) {
             return Missatges.JUGADOR_NO_EXISTEIX + ": " + idJugador;
@@ -143,7 +143,52 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
 
     @Override
     public int CalcularPunts(int idJugador) {
-        return 0;
+        Session session = sessionFactory.getCurrentSession();
+        try {
+            session.beginTransaction();
+            int res = CalcularPunts(session, idJugador);
+            session.getTransaction().commit();
+            return res;
+        } catch (RuntimeException e) {
+            handleException(session, e);
+            System.out.println(Missatges.ERROR_BD);
+            return -1;
+        }
+    }
+
+    private int CalcularPunts(Session session, int idJugador) {
+        Jugador j = get(idJugador);
+        if (j == null) {
+            System.out.println(Missatges.JUGADOR_NO_EXISTEIX + ": " + idJugador);
+            return -1;
+        }
+        return calcularPunts(session, j, PartidaDao.exercitMesGran(j.getPartida()));
+    }
+
+    /** Punts de victòria: construccions + cartes de punt + exèrcit més gran. Única font de veritat. */
+    public static int calcularPunts(Session session, Jugador j, Jugador exercitMesGran) {
+        int punts = puntsConstruccions(session, j.getId());
+        for (CartaDesenvolupament c : j.getMa()) {
+            if (c.getTipus() == TipusCarta.PUNT_VICTORIA) {
+                punts++;
+            }
+        }
+        if (j.getId().equals(exercitMesGran == null ? null : exercitMesGran.getId())) {
+            punts += 2;
+        }
+        return punts;
+    }
+
+    public static int puntsConstruccions(Session session, int idJugador) {
+        long poblats = session
+                .createQuery("SELECT COUNT(c) FROM Poblat c WHERE c.propietari.id = :id", Long.class)
+                .setParameter("id", idJugador)
+                .uniqueResult();
+        long ciutats = session
+                .createQuery("SELECT COUNT(c) FROM Ciutat c WHERE c.propietari.id = :id", Long.class)
+                .setParameter("id", idJugador)
+                .uniqueResult();
+        return (int) (poblats + ciutats * 2);
     }
 
     @Override
@@ -185,6 +230,10 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         if (p.getEstat() == EstatPartida.EN_CURS) {
             if (!p.isDausTirats()) {
                 return Missatges.DAUS_NO_TIRATS;
+            }
+            String victoria = PartidaDao.verificarVictoria(session, p);
+            if (p.getEstat() == EstatPartida.FINALITZADA) {
+                return victoria;
             }
             if (pos == n - 1) {
                 p.setRonda(p.getRonda() + 1);
@@ -242,11 +291,6 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         }
         p.setDausTirats(false);
         return Missatges.TORN_PASSAT + p.getActiu().getNom();
-    }
-
-    @Override
-    public String ComprovarVictoria(int idPartida) {
-        return "";
     }
 
     @Override

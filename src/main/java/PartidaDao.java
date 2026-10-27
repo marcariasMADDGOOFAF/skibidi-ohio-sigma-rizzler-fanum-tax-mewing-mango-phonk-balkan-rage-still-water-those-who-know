@@ -261,19 +261,17 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         }else{
             sb.append("-");
         }
-        sb.append("-");
+        sb.append("\n");
 
-        sb.append("Ultima Tirada: ").append(p.getUltimaTirada()).append("\n");
+        sb.append("Ultima Tirada: ").append(p.getUltimaTirada() == 0 ? "-" : String.valueOf(p.getUltimaTirada())).append("\n");
+        sb.append("Daus tirats: ").append(p.isDausTirats()).append("\n");
+        sb.append("Lladre pendent: ").append(p.isLladrePendent()).append("\n");
 
         // Resum Jugadors
         sb.append("--- ESTAT DE TOTS ELS JUGADORS ---\n");
+        Jugador exercitGran = exercitMesGran(p);
         for (Jugador j : p.getJugadors()) {
-            int punts = 0;
-            for (CartaDesenvolupament c : j.getMa()) {
-                if (c.getTipus() == TipusCarta.PUNT_VICTORIA) {
-                    punts++;
-                }
-            }
+            int punts = JugadorDao.calcularPunts(session, j, exercitGran);
             int poblats = 0, ciutats = 0, carreteres = 0;
             for (Construccio c : j.getConstruccions()) {
                 if (c instanceof Poblat) {
@@ -284,9 +282,6 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
                     carreteres++;
                 }
             }
-
-            punts += poblats;
-            punts += ciutats * 2;
 
             int totalRecursos = 0;
             for (RecursJugador r : j.getInventari()) {
@@ -335,11 +330,10 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
             
 
             List<Hexagon> hexs = session.createQuery("SELECT DISTINCT h FROM Hexagons h WHERE numero = :numero AND numero != :lladre", Hexagon.class).setParameter("numero", numero).setParameter("lladre", p.getLladre()).getResultList();
-            
 
+            return Missatges.DAUS_TIRATS;
         }
-
-        return "";
+        return Missatges.DAUS_NO_TIRATS;
     }
 
     @Override
@@ -356,6 +350,20 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         }
     }
 
+    public static Jugador exercitMesGran(Partida p) {
+        Jugador exercitMesGran = null;
+        int maxCavallers = 2;
+        for (Jugador j1 : p.getJugadors()) {
+            if (j1.getCavallersJugats() > maxCavallers) {
+                maxCavallers = j1.getCavallersJugats();
+                exercitMesGran = j1;
+            } else if (j1.getCavallersJugats() == maxCavallers) {
+                exercitMesGran = null;
+            }
+        }
+        return exercitMesGran;
+    }
+
     private String ComprovarVictoria(Session session, int idPartida) {
         Partida p = get(idPartida);
         if (p == null) {
@@ -364,39 +372,37 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         if (p.getEstat() == EstatPartida.FINALITZADA) {
             return Missatges.PARTIDA_FINALITZADA;
         }
-
-        List<Jugador> jugadors = p.getJugadors();
-        Jugador exercitMesGran = null;
-        int maxCavallers = 2;
-        for (Jugador j : jugadors) {
-            if (j.getCavallersJugats() > maxCavallers) {
-                maxCavallers = j.getCavallersJugats();
-                exercitMesGran = j;
-            } else if (j.getCavallersJugats() == maxCavallers) {
-                exercitMesGran = null;
-            }
+        if (p.getEstat() != EstatPartida.EN_CURS) {
+            return Missatges.PARTIDA_NO_EN_CURS;
         }
+        return verificarVictoria(session, p);
+    }
+    public static String verificarVictoria(Session session, Partida p) {
+        Jugador exercitMesGran = exercitMesGran(p);
 
         Jugador guanyador = null;
-        for (Jugador j : jugadors) {
-            int punts = 0;
-            for (Construccio c : j.getConstruccions()) {
-                if (c instanceof Poblat) {
-                    punts++;
-                } else if (c instanceof Ciutat) {
-                    punts += 2;
-                }
+        int milloresPunts = -1;
+        for (Jugador j : p.getJugadors()) {
+            int punts = JugadorDao.calcularPunts(session, j, exercitMesGran);
+            if (punts < p.getPuntsPerGuanyar()) {
+                continue;
             }
-            for (CartaDesenvolupament c : j.getMa()) {
-                if (c.getTipus() == TipusCarta.PUNT_VICTORIA) {
-                    punts++;
-                }
+            boolean actiu = p.getActiu() != null && p.getActiu().getId().equals(j.getId());
+            boolean guanyadorActiu = guanyador != null && p.getActiu() != null
+                    && p.getActiu().getId().equals(guanyador.getId());
+            boolean millor;
+            if (guanyador == null) {
+                millor = true;
+            } else if (actiu != guanyadorActiu) {
+                millor = actiu;
+            } else if (punts != milloresPunts) {
+                millor = punts > milloresPunts;
+            } else {
+                millor = j.getOrdreTorn() < guanyador.getOrdreTorn();
             }
-            if (j == exercitMesGran) {
-                punts += 2;
-            }
-            if (punts >= p.getPuntsPerGuanyar() && (guanyador == null || j.getOrdreTorn() < guanyador.getOrdreTorn())) {
+            if (millor) {
                 guanyador = j;
+                milloresPunts = punts;
             }
         }
 

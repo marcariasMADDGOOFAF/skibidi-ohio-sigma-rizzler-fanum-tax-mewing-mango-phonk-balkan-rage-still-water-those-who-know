@@ -2,9 +2,6 @@
 
 public final class Missatges {
 
-    private Missatges() {
-    }
-
     public static final String PARTIDA_NO_EXISTEIX = "No existeix la partida" ;
     public static final String JUGADOR_NO_EXISTEIX = "No existeix el jugador" ;
     public static final String ERROR_BD = "ERROR A LA CONNEXIO AMB LA BD" ;
@@ -24,6 +21,7 @@ public final class Missatges {
     public static final String COMERCIAR_FET = "Intercanvi amb  fet: ";
     public static final String VICTORIA_PENDENT = "Encara no hi ha cap guanyador";
     public static final String VICTORIA = "Ha guanyat la partida: ";
+    public static final String DAUS_TIRATS = "S'han tirat els daus!";
 
 
 

@@ -8,7 +8,6 @@ public interface IJugadorDao extends IGenericDao<Jugador,Integer> {
     String ComerciarBanca(int idJugador, TipusRecurs dona, TipusRecurs rep);
     int CalcularPunts(int idJugador);
     String PassarTorn(int idJugador);
-    String ComprovarVictoria(int idPartida);
     String MoureLladre(int idJugador, int idHexagon, Integer idJugadorVictima);
     String ComprarCarta(int idJugador);
     String JugarCarta(int idJugador, int idCarta, TipusRecurs recurs);
