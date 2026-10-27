@@ -41,34 +41,84 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         Session session = SessionManager.getSessionFactory().getCurrentSession();
         try {
             session.beginTransaction();
-            String daus = ConstruirCarretera(session, idJugador, idAresta);
+            String resultat = ConstruirCarretera(session, idJugador, idAresta);
             session.getTransaction().commit();
-            return daus;
-        } catch (Exception e) {
-            // TODO: handle exception
+            return resultat;
+        } catch (RuntimeException e) {
+            handleException(session, e);
+            return Missatges.ERROR_BD;
         }
-        return "";
     }
 
     public String ConstruirCarretera(Session session, int idJugador, int idAresta) {
 
         Jugador j = get(idJugador);
+        if (j == null) {
+            return Missatges.JUGADOR_NO_EXISTEIX + ": " + idJugador;
+        }
 
         Partida p = j.getPartida();
 
-        if (p.getActiu() == j) {
-
-
-            
-            
+        if (p.getEstat() == EstatPartida.FINALITZADA) {
+            return Missatges.PARTIDA_FINALITZADA;
+        }
+        if (p.getEstat() != EstatPartida.PREPARACIO && p.getEstat() != EstatPartida.EN_CURS) {
+            return Missatges.PARTIDA_NO_EN_CURS;
+        }
+        if (p.getActiu() == null || !p.getActiu().getId().equals(j.getId())) {
+            return Missatges.JUGADOR_NO_ACTIU;
         }
 
-
-        if (true) {
-            
+        Aresta ar = session.get(Aresta.class, idAresta);
+        if (ar == null) {
+            return Missatges.ARESTA_NO_EXISTEIX + ": " + idAresta;
+        }
+        if (!ar.getPartida().getId().equals(p.getId())) {
+            return Missatges.ARESTA_ALTRA_PARTIDA;
+        }
+        if (ar.getCarretera() != null) {
+            return Missatges.ARESTA_OCUPADA;
         }
 
-        return "";
+        boolean preparacio = p.getEstat() == EstatPartida.PREPARACIO;
+
+        if (!preparacio) {
+            if (!p.isDausTirats()) {
+                return Missatges.DAUS_NO_TIRATS;
+            }
+            if (p.isLladrePendent()) {
+                return Missatges.LLADRE_PENDENT;
+            }
+        }
+
+        if (comptarCarreteres(j) >= 15) {
+            return Missatges.LIMIT_CARRETERES;
+        }
+
+        if (preparacio) {
+            if (comptarPoblats(j) == 0) {
+                return Missatges.POBLAT_PREVI_PENDENT;
+            }
+            if (!tocaPoblatNou(j, ar)) {
+                return Missatges.CARRETERA_NO_CONNECTADA;
+            }
+        } else {
+            if (!carreteraConnectada(j, ar)) {
+                return Missatges.CARRETERA_NO_CONNECTADA;
+            }
+            if (!potPagarCarretera(j)) {
+                return Missatges.RECURSOS_INSUFICIENTS;
+            }
+            pagarCarretera(j);
+        }
+
+        Carretera carretera = new Carretera();
+        carretera.setAresta(ar);
+        carretera.setPropietari(j);
+        session.persist(carretera);
+        j.getConstruccions().add(carretera);
+
+        return Missatges.CARRETERA_CONSTRUIDA;
     }
 
     @Override
@@ -319,6 +369,80 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
     }
 
 
+    private long comptarCarreteres(Jugador j) {
+        return j.getConstruccions().stream()
+                .filter(c -> c instanceof Carretera)
+                .count();
+    }
+
+    private long comptarPoblats(Jugador j) {
+        return j.getConstruccions().stream()
+                .filter(c -> c instanceof Poblat)
+                .count();
+    }
+
+    private boolean tocaPoblatNou(Jugador j, Aresta ar) {
+        for (Construccio c : j.getConstruccions()) {
+            if (c instanceof Poblat poblat) {
+                Vertex v = poblat.getVertex();
+                if (esVertexDeAresta(ar, v) && !teCarreteraAdjacent(j, v)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean carreteraConnectada(Jugador j, Aresta ar) {
+        return vertexConnectat(j, ar.getVertexA()) || vertexConnectat(j, ar.getVertexB());
+    }
+
+    private boolean vertexConnectat(Jugador j, Vertex v) {
+        for (Construccio c : j.getConstruccions()) {
+            if (c instanceof Assentament a && a.getVertex().getId() == v.getId()) {
+                return true;
+            }
+            if (c instanceof Carretera car && esVertexDeAresta(car.getAresta(), v)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean teCarreteraAdjacent(Jugador j, Vertex v) {
+        for (Construccio c : j.getConstruccions()) {
+            if (c instanceof Carretera car && esVertexDeAresta(car.getAresta(), v)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean esVertexDeAresta(Aresta ar, Vertex v) {
+        return ar.getVertexA().getId() == v.getId() || ar.getVertexB().getId() == v.getId();
+    }
+
+    private boolean potPagarCarretera(Jugador j) {
+        return quantitatRecurs(j, TipusRecurs.FUSTA) >= 1
+                && quantitatRecurs(j, TipusRecurs.MAO) >= 1;
+    }
+
+    private int quantitatRecurs(Jugador j, TipusRecurs tipus) {
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == tipus) {
+                return r.getQuantitat();
+            }
+        }
+        return 0;
+    }
+
+    private void pagarCarretera(Jugador j) {
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == TipusRecurs.FUSTA || r.getTipus() == TipusRecurs.MAO) {
+                r.setQuantitat(r.getQuantitat() - 1);
+            }
+        }
+    }
 
 
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaDao{
@@ -299,42 +300,133 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         return sb.toString();
     }
 
-     @Override
+    @Override
     public String tirarDaus(int idPartida) {
         Session session = SessionManager.getSessionFactory().getCurrentSession();
         try {
             session.beginTransaction();
-            String daus = tirarDaus(session, idPartida);
+            String resultat = tirarDaus(session, idPartida);
             session.getTransaction().commit();
-            return daus;
-        } catch (Exception e) {
-            // TODO: handle exception
+            return resultat;
+        } catch (RuntimeException e) {
+            handleException(session, e);
+            return Missatges.ERROR_BD;
         }
-        return "";
     }
 
-    private String tirarDaus(Session session, int idPartida){
+    private String tirarDaus(Session session, int idPartida) {
 
         Partida p = get(idPartida);
-
-        boolean tirats = session.createQuery("SELECT DISTINCT p.daus_tirats FROM Partida p WHERE p.id = :id", Boolean.class).setParameter("id", idPartida).uniqueResult();
-        if (!tirats) {
-            int dau1 = (int) Math.floor(Math.random()*6);
-            int dau2 = (int) Math.floor(Math.random()*6);
-            int numero = dau1 + dau2;
-
-            p.setUltimaTirada(numero);
-            p.setDausTirats(true);
-
-            saveOrUpdate(p);
-            
-
-            List<Hexagon> hexs = session.createQuery("SELECT DISTINCT h FROM Hexagons h WHERE numero = :numero AND numero != :lladre", Hexagon.class).setParameter("numero", numero).setParameter("lladre", p.getLladre()).getResultList();
-
+        if (p == null) {
+            return Missatges.PARTIDA_NO_EXISTEIX + ": " + idPartida;
+        }
+        if (p.getEstat() == EstatPartida.FINALITZADA) {
+            return Missatges.PARTIDA_FINALITZADA;
+        }
+        if (p.getEstat() != EstatPartida.EN_CURS) {
+            return Missatges.PARTIDA_NO_EN_CURS;
+        }
+        if (p.getActiu() == null) {
+            return Missatges.JUGADOR_NO_ACTIU;
+        }
+        if (p.isDausTirats()) {
             return Missatges.DAUS_TIRATS;
         }
-        return Missatges.DAUS_NO_TIRATS;
+        if (p.isLladrePendent()) {
+            return Missatges.LLADRE_PENDENT;
+        }
+
+        int dau1 = (int) Math.floor(Math.random()*6);
+        int dau2 = (int) Math.floor(Math.random()*6);
+        int numero = dau1 + dau2;
+
+        p.setUltimaTirada(numero);
+        p.setDausTirats(true);
+
+        if (numero == 7) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Tirada: ").append(dau1).append(" + ").append(dau2).append(" = 7\n");
+            sb.append("No hi ha producció.\n");
+            for (Jugador j : p.getJugadors()) {
+                int descartats = descartarMeitat(j);
+                if (descartats > 0) {
+                    sb.append(j.getNom()).append(" descarta ").append(descartats).append(" recursos.\n");
+                } else {
+                    sb.append(j.getNom()).append(" no descarta cap recurs.\n");
+                }
+            }
+            p.setLladrePendent(true);
+            sb.append("El lladre queda pendent.\n");
+            return sb.toString();
+        }
+
+        Map<Integer, int[]> rebut = new HashMap<>();
+        for (Jugador j : p.getJugadors()) {
+            rebut.put(j.getId(), new int[TipusRecurs.values().length]);
+        }
+
+        Integer idLladre = p.getLladre().getId();
+
+        List<Hexagon> hexagons = session.createQuery(
+                "SELECT DISTINCT h FROM Hexagon h " +
+                "JOIN FETCH h.hexagonVertices hv " +
+                "JOIN FETCH hv.vertex v " +
+                "LEFT JOIN FETCH v.assentament a " +
+                "LEFT JOIN FETCH a.propietari " +
+                "WHERE h.partida.id = :idPartida AND h.numero = :numero", Hexagon.class)
+                .setParameter("idPartida", idPartida)
+                .setParameter("numero", numero)
+                .getResultList();
+
+        for (Hexagon h : hexagons) {
+            if (idLladre != null && idLladre.equals(h.getId())) {
+                continue;
+            }
+            TipusRecurs recurs = recursDeTerreny(h.getTerreny());
+            if (recurs == null) {
+                continue;
+            }
+            for (HexagonVertex hv : h.getHexagonVertices()) {
+                Assentament assentament = hv.getVertex().getAssentament();
+                if (assentament == null) {
+                    continue;
+                }
+                int quantitat = assentament instanceof Ciutat ? 2 : 1;
+                Jugador propietari = assentament.getPropietari();
+                int[] comptador = rebut.get(propietari.getId());
+                if (comptador == null) {
+                    continue;
+                }
+                afegirRecurs(session, propietari, recurs, quantitat);
+                comptador[recurs.ordinal()] += quantitat;
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Tirada: ").append(dau1).append(" + ").append(dau2).append(" = ").append(numero).append("\n");
+        for (Jugador j : p.getJugadors()) {
+            sb.append(j.getNom()).append(": ");
+            int[] comptador = rebut.get(j.getId());
+            boolean algun = false;
+            for (TipusRecurs tipus : TipusRecurs.values()) {
+                int quantitat = comptador[tipus.ordinal()];
+                if (quantitat > 0) {
+                    if (algun) {
+                        sb.append(", ");
+                    }
+                    sb.append("+").append(quantitat).append(" ").append(tipus);
+                    algun = true;
+                }
+            }
+            if (!algun) {
+                sb.append("sense producció");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
     }
+
+    
 
     @Override
     public String ComprovarVictoria(int idPartida) {
@@ -348,6 +440,58 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
             handleException(session, e);
             return Missatges.ERROR_BD;
         }
+    }
+
+    private TipusRecurs recursDeTerreny(TipusTerreny terreny) {
+        return switch (terreny) {
+            case BOSC -> TipusRecurs.FUSTA;
+            case TURONS -> TipusRecurs.MAO;
+            case PASTURES -> TipusRecurs.LLANA;
+            case CAMPS -> TipusRecurs.BLAT;
+            case MUNTANYES -> TipusRecurs.MINERAL;
+            case DESERT -> null;
+        };
+    }
+
+    private void afegirRecurs(Session session, Jugador j, TipusRecurs tipus, int quantitat) {
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == tipus) {
+                r.setQuantitat(r.getQuantitat() + quantitat);
+                return;
+            }
+        }
+        RecursJugador nou = new RecursJugador(tipus, quantitat, j);
+        j.getInventari().add(nou);
+        session.persist(nou);
+    }
+
+    private void llevarRecurs(Jugador j, TipusRecurs tipus, int quantitat) {
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == tipus) {
+                r.setQuantitat(Math.max(0, r.getQuantitat() - quantitat));
+                return;
+            }
+        }
+    }
+
+    private int descartarMeitat(Jugador j) {
+        int total = 0;
+        List<TipusRecurs> unitats = new ArrayList<>();
+        for (RecursJugador r : j.getInventari()) {
+            total += r.getQuantitat();
+            for (int i = 0; i < r.getQuantitat(); i++) {
+                unitats.add(r.getTipus());
+            }
+        }
+        if (total <= 7) {
+            return 0;
+        }
+        int descartar = total / 2;
+        Collections.shuffle(unitats);
+        for (int i = 0; i < descartar; i++) {
+            llevarRecurs(j, unitats.get(i), 1);
+        }
+        return descartar;
     }
 
     public static Jugador exercitMesGran(Partida p) {
