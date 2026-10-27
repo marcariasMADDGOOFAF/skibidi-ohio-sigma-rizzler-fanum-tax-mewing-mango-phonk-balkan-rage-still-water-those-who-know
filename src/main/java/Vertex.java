@@ -27,11 +27,17 @@ public class Vertex {
     @OneToMany(mappedBy = "vertex", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<HexagonVertex> hexagonVertices = new ArrayList<>();
 
+    @OneToMany(mappedBy = "vertexA", fetch = FetchType.LAZY)
+    private List<Aresta> arestesA = new ArrayList<>();
+
+    @OneToMany(mappedBy = "vertexB", fetch = FetchType.LAZY)
+    private List<Aresta> arestesB = new ArrayList<>();
+
     @OneToOne(mappedBy = "vertex", fetch = FetchType.LAZY, optional = true)
     private Assentament assentament;
 
     @NotNull (message = "El codi és obligatori")
-    @Column (name = "codi", nullable = false)
+    @Column (name = "codi", nullable = false, length = 10)
     private String codi;
 
     @Column(name = "x", nullable = false)
@@ -68,6 +74,26 @@ public class Vertex {
 
     public String getCodi() {
         return codi;
+    }
+
+    public List<HexagonVertex> getHexagonVertices() {
+        return hexagonVertices;
+    }
+
+    public List<Aresta> getArestesA() {
+        return arestesA;
+    }
+
+    public List<Aresta> getArestesB() {
+        return arestesB;
+    }
+
+    public Assentament getAssentament() {
+        return assentament;
+    }
+
+    public Partida getPartida() {
+        return partida;
     }
 
     public void setCodi(String codi) {
