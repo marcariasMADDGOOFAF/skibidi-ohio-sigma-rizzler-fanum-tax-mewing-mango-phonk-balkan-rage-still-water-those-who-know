@@ -9,13 +9,18 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.Check;
 
 @Entity
 @Table(name = "recurs_jugador", uniqueConstraints = @UniqueConstraint(columnNames = {"jugador_id", "tipus"}))
+@NamedQuery(name = "RecursJugador.perJugador",
+    query = "FROM RecursJugador r WHERE r.jugador.id = :idJugador ORDER BY r.tipus")
+@Check(constraints = "quantitat >= 0")
 public class RecursJugador {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +46,15 @@ public class RecursJugador {
     public RecursJugador(TipusRecurs tipus, int quantitat) {
         this.tipus = tipus;
         this.quantitat = quantitat;
+    }
+
+    public RecursJugador(TipusRecurs tipus, int quantitat, Jugador jugador) {
+        this(tipus, quantitat);
+        this.jugador = jugador;
+    }
+
+    public Jugador getJugador() {
+        return jugador;
     }
 
     public Integer getId() { 

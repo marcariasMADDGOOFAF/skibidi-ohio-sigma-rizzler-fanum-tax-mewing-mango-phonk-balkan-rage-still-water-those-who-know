@@ -15,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -25,6 +26,10 @@ import jakarta.validation.constraints.Max;
 @Entity
 @Table(name = "hexagom", uniqueConstraints = @UniqueConstraint(columnNames = {"partida_id", "codi"}))
 @Check(constraints = "numero IS NULL OR (numero BETWEEN 2 AND 12 AND numero <> 7)")
+@NamedQuery(name = "Hexagon.taulerPerPartida", query =
+    "SELECT DISTINCT h FROM Hexagon h LEFT JOIN FETCH h.hexagonVertices hv " +
+    "LEFT JOIN FETCH hv.vertex v LEFT JOIN FETCH v.assentament a " +
+    "LEFT JOIN FETCH a.propietari WHERE h.partida.id = :idPartida ORDER BY h.id")
 @DynamicInsert
 public class Hexagon {
     @Id
