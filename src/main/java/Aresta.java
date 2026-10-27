@@ -18,7 +18,7 @@ public class Aresta {
 	@Column(name = "id")
     private Integer id;
 
-    @Column (name = "codi", nullable = false)
+    @Column (name = "codi", nullable = false, length = 10)
     private String codi;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -61,6 +61,22 @@ public class Aresta {
 
     public String getCodi() {
         return codi;
+    }
+
+    public Vertex getVertexA() {
+        return vertexA;
+    }
+
+    public Vertex getVertexB() {
+        return vertexB;
+    }
+
+    public Partida getPartida() {
+        return partida;
+    }
+
+    public Carretera getCarretera() {
+        return carretera;
     }
 
     public void setCodi(String codi) {
