@@ -54,11 +54,14 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
 
     private void assignarTerrenysINumeros(Map<String, Hexagon> hexagons) {
         List<TipusTerreny> terrenys = new ArrayList<>();
-        afegirTerreny(terrenys, TipusTerreny.BOSC, 4);
-        afegirTerreny(terrenys, TipusTerreny.TURONS, 3);
-        afegirTerreny(terrenys, TipusTerreny.PASTURES, 4);
-        afegirTerreny(terrenys, TipusTerreny.CAMPS, 4);
-        afegirTerreny(terrenys, TipusTerreny.MUNTANYES, 3);
+        TipusTerreny[] tipusTerreny = {TipusTerreny.BOSC, TipusTerreny.TURONS, TipusTerreny.PASTURES,
+                TipusTerreny.CAMPS, TipusTerreny.MUNTANYES};
+        int[] quantitats = {4, 3, 4, 4, 3};
+        for (int t = 0; t < tipusTerreny.length; t++) {
+            for (int i = 0; i < quantitats[t]; i++) {
+                terrenys.add(tipusTerreny[t]);
+            }
+        }
         terrenys.add(TipusTerreny.DESERT);
 
         List<Hexagon> ordreHexagons = new ArrayList<>(hexagons.values());
@@ -93,9 +96,6 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         }
     }
 
-    private void afegirTerreny(List<TipusTerreny> terrenys, TipusTerreny terreny, int quantitat) {
-        for (int i = 0; i < quantitat; i++) terrenys.add(terreny);
-    }
 
     private Map<String, Aresta> carregarArestes(Session session, Map<String, Vertex> vertexs, Partida partida) {
         Map<String, Aresta> arestes = new HashMap<>();
@@ -176,10 +176,29 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
                 }
                 ordre++;
             }
-            Hexagon desert = partida.getTauler().stream()
-                    .filter(h -> h.getTerreny() == TipusTerreny.DESERT)
-                    .findFirst().orElseThrow(() -> new IllegalStateException("No s'ha generat el desert"));
+            Hexagon desert = null;
+            for (Hexagon h : partida.getTauler()) {
+                if (h.getTerreny() == TipusTerreny.DESERT) {
+                    desert = h;
+                    break;
+                }
+            }
+            if (desert == null) {
+                throw new IllegalStateException("No s'ha generat el desert");
+            }
             partida.setLladre(desert);
+            for (TipusCarta tipus : TipusCarta.values()) {
+                int quantitat = switch (tipus) {
+                    case CAVALLER -> 14;
+                    case PUNT_VICTORIA -> 5;
+                    case MONOPOLI -> 2;
+                };
+                for (int i = 0; i < quantitat; i++) {
+                    CartaDesenvolupament carta = new CartaDesenvolupament(tipus);
+                    carta.setPartida(partida);
+                    partida.getPila().add(carta);
+                }
+            }
             session.getTransaction().commit();
             return partida.getId();
         } catch (RuntimeException e) {
@@ -348,7 +367,26 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
             sb.append("Tirada: ").append(dau1).append(" + ").append(dau2).append(" = 7\n");
             sb.append("No hi ha producció.\n");
             for (Jugador j : p.getJugadors()) {
-                int descartats = descartarMeitat(j);
+                int total = 0;
+                List<TipusRecurs> unitats = new ArrayList<>();
+                for (RecursJugador r : j.getInventari()) {
+                    total += r.getQuantitat();
+                    for (int i = 0; i < r.getQuantitat(); i++) {
+                        unitats.add(r.getTipus());
+                    }
+                }
+                int descartats = 0;
+                if (total > 7) {
+                    descartats = total / 2;
+                    Collections.shuffle(unitats);
+                    for (int i = 0; i < descartats; i++) {
+                        for (RecursJugador r : j.getInventari()) {
+                            if (r.getTipus() == unitats.get(i)) {
+                                r.setQuantitat(Math.max(0, r.getQuantitat() - 1));
+                            }
+                        }
+                    }
+                }
                 if (descartats > 0) {
                     sb.append(j.getNom()).append(" descarta ").append(descartats).append(" recursos.\n");
                 } else {
@@ -368,12 +406,12 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         Integer idLladre = p.getLladre().getId();
 
         List<Hexagon> hexagons = session.createQuery(
-                "SELECT DISTINCT h FROM Hexagon h " +
-                "JOIN FETCH h.hexagonVertices hv " +
-                "JOIN FETCH hv.vertex v " +
-                "LEFT JOIN FETCH v.assentament a " +
-                "LEFT JOIN FETCH a.propietari " +
-                "WHERE h.partida.id = :idPartida AND h.numero = :numero", Hexagon.class)
+                "select distinct h from Hexagon h " +
+                "join fetch h.hexagonVertices hv " +
+                "join fetch hv.vertex v " +
+                "left join fetch v.assentament a " +
+                "left join fetch a.propietari " +
+                "where h.partida.id = :idPartida and h.numero = :numero", Hexagon.class)
                 .setParameter("idPartida", idPartida)
                 .setParameter("numero", numero)
                 .getResultList();
@@ -382,7 +420,14 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
             if (idLladre != null && idLladre.equals(h.getId())) {
                 continue;
             }
-            TipusRecurs recurs = recursDeTerreny(h.getTerreny());
+            TipusRecurs recurs = switch (h.getTerreny()) {
+                case BOSC -> TipusRecurs.FUSTA;
+                case TURONS -> TipusRecurs.MAO;
+                case PASTURES -> TipusRecurs.LLANA;
+                case CAMPS -> TipusRecurs.BLAT;
+                case MUNTANYES -> TipusRecurs.MINERAL;
+                case DESERT -> null;
+            };
             if (recurs == null) {
                 continue;
             }
@@ -397,7 +442,18 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
                 if (comptador == null) {
                     continue;
                 }
-                afegirRecurs(session, propietari, recurs, quantitat);
+                boolean trobat = false;
+                for (RecursJugador r : propietari.getInventari()) {
+                    if (r.getTipus() == recurs) {
+                        r.setQuantitat(r.getQuantitat() + quantitat);
+                        trobat = true;
+                    }
+                }
+                if (!trobat) {
+                    RecursJugador nou = new RecursJugador(recurs, quantitat, propietari);
+                    propietari.getInventari().add(nou);
+                    session.persist(nou);
+                }
                 comptador[recurs.ordinal()] += quantitat;
             }
         }
@@ -442,70 +498,37 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
         }
     }
 
-    private TipusRecurs recursDeTerreny(TipusTerreny terreny) {
-        return switch (terreny) {
-            case BOSC -> TipusRecurs.FUSTA;
-            case TURONS -> TipusRecurs.MAO;
-            case PASTURES -> TipusRecurs.LLANA;
-            case CAMPS -> TipusRecurs.BLAT;
-            case MUNTANYES -> TipusRecurs.MINERAL;
-            case DESERT -> null;
-        };
-    }
-
-    private void afegirRecurs(Session session, Jugador j, TipusRecurs tipus, int quantitat) {
-        for (RecursJugador r : j.getInventari()) {
-            if (r.getTipus() == tipus) {
-                r.setQuantitat(r.getQuantitat() + quantitat);
-                return;
-            }
-        }
-        RecursJugador nou = new RecursJugador(tipus, quantitat, j);
-        j.getInventari().add(nou);
-        session.persist(nou);
-    }
-
-    private void llevarRecurs(Jugador j, TipusRecurs tipus, int quantitat) {
-        for (RecursJugador r : j.getInventari()) {
-            if (r.getTipus() == tipus) {
-                r.setQuantitat(Math.max(0, r.getQuantitat() - quantitat));
-                return;
-            }
-        }
-    }
-
-    private int descartarMeitat(Jugador j) {
-        int total = 0;
-        List<TipusRecurs> unitats = new ArrayList<>();
-        for (RecursJugador r : j.getInventari()) {
-            total += r.getQuantitat();
-            for (int i = 0; i < r.getQuantitat(); i++) {
-                unitats.add(r.getTipus());
-            }
-        }
-        if (total <= 7) {
-            return 0;
-        }
-        int descartar = total / 2;
-        Collections.shuffle(unitats);
-        for (int i = 0; i < descartar; i++) {
-            llevarRecurs(j, unitats.get(i), 1);
-        }
-        return descartar;
-    }
 
     public static Jugador exercitMesGran(Partida p) {
-        Jugador exercitMesGran = null;
-        int maxCavallers = 2;
-        for (Jugador j1 : p.getJugadors()) {
-            if (j1.getCavallersJugats() > maxCavallers) {
-                maxCavallers = j1.getCavallersJugats();
-                exercitMesGran = j1;
-            } else if (j1.getCavallersJugats() == maxCavallers) {
-                exercitMesGran = null;
+        Jugador millor = null;
+        int max = 2;
+        boolean empat = false;
+        for (Jugador j : p.getJugadors()) {
+            int cavallers = j.getCavallersJugats();
+            if (cavallers > max) {
+                max = cavallers;
+                millor = j;
+                empat = false;
+            } else if (cavallers == max && millor != null) {
+                empat = true;
             }
         }
-        return exercitMesGran;
+        return empat ? null : millor;
+    }
+
+    @Override
+    public Jugador ExercitMesGran(int idPartida) {
+        Session session = sessionFactory.getCurrentSession();
+        try {
+            session.beginTransaction();
+            Partida p = get(idPartida);
+            Jugador resultat = p == null ? null : exercitMesGran(p);
+            session.getTransaction().commit();
+            return resultat;
+        } catch (RuntimeException e) {
+            handleException(session, e);
+            return null;
+        }
     }
 
     private String ComprovarVictoria(Session session, int idPartida) {

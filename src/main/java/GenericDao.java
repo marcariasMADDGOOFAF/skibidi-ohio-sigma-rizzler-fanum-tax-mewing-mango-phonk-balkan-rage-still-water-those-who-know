@@ -108,7 +108,7 @@ public class GenericDao<T, ID extends Serializable> implements IGenericDao<T, ID
 			if (propia) {
 				session.beginTransaction();
 			}
-			List<T> entities = session.createQuery("FROM " + getEntityClass().getName(), getEntityClass())
+			List<T> entities = session.createQuery("from " + getEntityClass().getName(), getEntityClass())
 					.getResultList();
 			if (propia) {
 				session.getTransaction().commit();

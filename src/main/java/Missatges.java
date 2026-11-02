@@ -30,6 +30,27 @@ public final class Missatges {
     public static final String VICTORIA_PENDENT = "Encara no hi ha cap guanyador";
     public static final String VICTORIA = "Ha guanyat la partida: ";
     public static final String DAUS_TIRATS = "S'han tirat els daus!";
+    public static final String LLADRE_NO_PENDENT = "No hi ha cap moviment de lladre pendent";
+    public static final String HEXAGON_NO_EXISTEIX = "No existeix l'hexagon";
+    public static final String HEXAGON_ALTRA_PARTIDA = "Aquest hexagon no pertany a la teva partida";
+    public static final String LLADRE_MATEIX_HEXAGON = "El lladre ha de moure's a un hexagon diferent de l'actual";
+    public static final String VICTIMA_INVALIDA = "La victima ha de ser un altre jugador amb un assentament en aquest hexagon";
+    public static final String VICTIMA_OBLIGATORIA = "Has de triar una victima: hi ha jugadors amb recursos a l'hexagon";
+    public static final String LLADRE_MOGUT = "Lladre mogut a l'hexagon ";
+    public static final String LLADRE_ROBA = ". Has robat 1 recurs a ";
+    public static final String LLADRE_NO_ROBA = ". No s'ha robat cap recurs";
+    public static final String CARTA_RECURSOS_INSUFICIENTS = "Una carta costa 1 BLAT + 1 LLANA + 1 MINERAL";
+    public static final String PILA_BUIDA = "La pila de cartes esta buida";
+    public static final String CARTA_COMPRADA = "Has comprat una carta: ";
+    public static final String CARTA_NO_EXISTEIX = "No existeix la carta";
+    public static final String CARTA_NO_ES_TEVA = "Aquesta carta no es a la teva ma";
+    public static final String CARTA_USADA = "Aquesta carta ja ha estat usada";
+    public static final String CARTA_NO_JUGABLE = "Les cartes PUNT_VICTORIA no es juguen";
+    public static final String CARTA_MATEIXA_RONDA = "No pots jugar una carta a la mateixa ronda en que l'has comprat";
+    public static final String MONOPOLI_SENSE_RECURS = "El monopoli necessita indicar un tipus de recurs";
+    public static final String CAVALLER_JUGAT = "Cavaller jugat: el lladre queda pendent, mou-lo amb MoureLladre";
+    public static final String MONOPOLI_FET = "Monopoli fet, has rebut recursos: ";
+    public static final String LLADRE_PENDENT_ACCIO = "Has de moure el lladre abans de fer cap altra accio";
 
 
 
