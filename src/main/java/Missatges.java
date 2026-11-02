@@ -15,6 +15,15 @@ public final class Missatges {
     public static final String CARRETERA_NO_CONNECTADA = "La carretera no connecta amb el poblat o una carretera teva";
     public static final String POBLAT_PREVI_PENDENT = "Primer has de col·locar un poblat";
     public static final String CARRETERA_CONSTRUIDA = "Carretera construïda correctament";
+    public static final String VERTEX_NO_EXISTEIX = "No existeix el vèrtex";
+    public static final String VERTEX_ALTRA_PARTIDA = "Aquest vèrtex no pertany a la teva partida";
+    public static final String VERTEX_OCUPAT = "Aquest vèrtex ja té una construcció";
+    public static final String DISTANCIA_NO_COMPLERTA = "No pots construir a tocar d'un altre poblat o ciutat";
+    public static final String POBLAT_NO_CONNECTAT = "El poblat no connecta amb una carretera teva";
+    public static final String POBLAT_JA_COLOCAT = "Ja has col·locat el poblat d'aquest torn";
+    public static final String LIMIT_POBLATS = "Has arribat al límit de 5 poblats";
+    public static final String RECURSOS_INSUFICIENTS_POBLAT = "No tens recursos suficients per construir el poblat";
+    public static final String POBLAT_CONSTRUIT = "Poblat construït correctament";
     public static final String LLADRE_PENDENT = "El lladre esta pendent, no es pot passar de torn";
     public static final String PARTIDA_FINALITZADA = "La partida ja ha acabat no pots fer res";
     public static final String PREPARACIO_INCOMPLETA = "Has de colocar el poblat i la carretera d'aquest torn abans de passar";

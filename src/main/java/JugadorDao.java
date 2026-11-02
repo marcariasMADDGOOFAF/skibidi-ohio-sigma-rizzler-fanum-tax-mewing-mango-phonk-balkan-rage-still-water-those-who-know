@@ -184,7 +184,94 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
 
     @Override
     public String ConstruirPoblat(int idJugador, int idVertex) {
-        return "";
+
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
+        try {
+            session.beginTransaction();
+            String resultat = ConstruirPoblat(idJugador, idVertex, session);
+            session.getTransaction().commit();
+            return resultat;
+        } catch (RuntimeException e) {
+            handleException(session, e);
+            return Missatges.ERROR_BD;
+        }
+    }
+
+    private String ConstruirPoblat(int idJugador, int idVertex, Session session) {
+        Jugador j = get(idJugador);
+        if (j == null) {
+            return Missatges.JUGADOR_NO_EXISTEIX + ": " + idJugador;
+        }
+
+        Partida p = j.getPartida();
+
+        if (p.getEstat() == EstatPartida.FINALITZADA) {
+            return Missatges.PARTIDA_FINALITZADA;
+        }
+        if (p.getEstat() != EstatPartida.PREPARACIO && p.getEstat() != EstatPartida.EN_CURS) {
+            return Missatges.PARTIDA_NO_EN_CURS;
+        }
+        if (p.getActiu() == null || !p.getActiu().getId().equals(j.getId())) {
+            return Missatges.JUGADOR_NO_ACTIU;
+        }
+
+        Vertex v = session.get(Vertex.class, idVertex);
+        if (v == null) {
+            return Missatges.VERTEX_NO_EXISTEIX + ": " + idVertex;
+        }
+        if (!v.getPartida().getId().equals(p.getId())) {
+            return Missatges.VERTEX_ALTRA_PARTIDA;
+        }
+        if (v.getAssentament() != null) {
+            return Missatges.VERTEX_OCUPAT;
+        }
+        if (!compleixDistancia(v)) {
+            return Missatges.DISTANCIA_NO_COMPLERTA;
+        }
+
+        boolean preparacio = p.getEstat() == EstatPartida.PREPARACIO;
+
+        if (preparacio) {
+            if (comptarPoblats(j) >= p.getRonda()) {
+                return Missatges.POBLAT_JA_COLOCAT;
+            }
+        } else {
+            if (!p.isDausTirats()) {
+                return Missatges.DAUS_NO_TIRATS;
+            }
+            if (p.isLladrePendent()) {
+                return Missatges.LLADRE_PENDENT;
+            }
+            if (!teCarreteraAdjacent(j, v)) {
+                return Missatges.POBLAT_NO_CONNECTAT;
+            }
+        }
+
+        if (comptarPoblats(j) >= 5) {
+            return Missatges.LIMIT_POBLATS;
+        }
+
+        if (!preparacio) {
+            if (!potPagarPoblat(j)) {
+                return Missatges.RECURSOS_INSUFICIENTS_POBLAT;
+            }
+            pagarPoblat(j);
+        }
+
+        boolean segonPoblat = preparacio && comptarPoblats(j) == 1;
+
+        Poblat poblat = new Poblat();
+        poblat.setVertex(v);
+        poblat.setPropietari(j);
+        session.persist(poblat);
+        j.getConstruccions().add(poblat);
+        v.setAssentament(poblat);
+
+        StringBuilder sb = new StringBuilder(Missatges.POBLAT_CONSTRUIT);
+        if (segonPoblat) {
+            sb.append("\n").append(repartirRecursosInicials(session, j, v));
+        }
+        return sb.toString();
     }
 
     @Override
@@ -698,7 +785,104 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         return query.getResultList();
     }
 
+    private long comptarPoblats(Jugador j) {
+        return j.getConstruccions().stream()
+                .filter(c -> c instanceof Poblat)
+                .count();
+    }
 
+    private boolean teCarreteraAdjacent(Jugador j, Vertex v) {
+        for (Construccio c : j.getConstruccions()) {
+            if (c instanceof Carretera car) {
+                Aresta a = car.getAresta();
+                if (a.getVertexA().getId() == v.getId() || a.getVertexB().getId() == v.getId()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
+    private boolean compleixDistancia(Vertex v) {
+        for (Aresta a : v.getArestesA()) {
+            if (a.getVertexB().getAssentament() != null) {
+                return false;
+            }
+        }
+        for (Aresta a : v.getArestesB()) {
+            if (a.getVertexA().getAssentament() != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean potPagarPoblat(Jugador j) {
+        return quantitatRecurs(j, TipusRecurs.FUSTA) >= 1
+                && quantitatRecurs(j, TipusRecurs.MAO) >= 1
+                && quantitatRecurs(j, TipusRecurs.LLANA) >= 1
+                && quantitatRecurs(j, TipusRecurs.BLAT) >= 1;
+    }
+
+    private void pagarPoblat(Jugador j) {
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == TipusRecurs.FUSTA
+                    || r.getTipus() == TipusRecurs.MAO
+                    || r.getTipus() == TipusRecurs.LLANA
+                    || r.getTipus() == TipusRecurs.BLAT) {
+                r.setQuantitat(r.getQuantitat() - 1);
+            }
+        }
+    }
+
+    private TipusRecurs recursDeTerreny(TipusTerreny terreny) {
+        return switch (terreny) {
+            case BOSC -> TipusRecurs.FUSTA;
+            case TURONS -> TipusRecurs.MAO;
+            case PASTURES -> TipusRecurs.LLANA;
+            case CAMPS -> TipusRecurs.BLAT;
+            case MUNTANYES -> TipusRecurs.MINERAL;
+            case DESERT -> null;
+        };
+    }
+
+    private void afegirRecurs(Session session, Jugador j, TipusRecurs tipus, int quantitat) {
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == tipus) {
+                r.setQuantitat(r.getQuantitat() + quantitat);
+                return;
+            }
+        }
+        RecursJugador nou = new RecursJugador(tipus, quantitat, j);
+        j.getInventari().add(nou);
+        session.persist(nou);
+    }
+
+    private String repartirRecursosInicials(Session session, Jugador j, Vertex v) {
+        StringBuilder sb = new StringBuilder("Recursos inicials:");
+        boolean cap = true;
+        for (HexagonVertex hv : v.getHexagonVertices()) {
+            TipusRecurs recurs = recursDeTerreny(hv.getHexagon().getTerreny());
+            if (recurs == null) {
+                continue;
+            }
+            afegirRecurs(session, j, recurs, 1);
+            sb.append(" +1 ").append(recurs);
+            cap = false;
+        }
+        if (cap) {
+            sb.append(" cap");
+        }
+        return sb.toString();
+    }
+
+    private int quantitatRecurs(Jugador j, TipusRecurs tipus) {
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == tipus) {
+                return r.getQuantitat();
+            }
+        }
+        return 0;
+    }
 
 }
