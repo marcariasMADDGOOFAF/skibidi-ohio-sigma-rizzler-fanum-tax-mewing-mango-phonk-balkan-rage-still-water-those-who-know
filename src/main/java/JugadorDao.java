@@ -1,10 +1,10 @@
 
-import org.hibernate.Session;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+
+import org.hibernate.Session;
 
 public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorDao {
 
@@ -276,7 +276,86 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
 
     @Override
     public String MillorarACiutat(int idJugador, int idVertex) {
-        return "";
+        Session session = SessionManager.getSessionFactory().getCurrentSession();
+        try {
+            session.beginTransaction();
+            String text = MillorarACiutat(session, idJugador, idVertex);
+            session.getTransaction().commit();
+            return text;
+        } catch (RuntimeException e) {
+            handleException(session, e);
+            return Missatges.ERROR_BD;
+        }
+    }
+
+    private String MillorarACiutat(Session session, int idJugador, int idVertex) {
+
+        Jugador j = get(idJugador);
+        if (j == null) {
+            return Missatges.JUGADOR_NO_EXISTEIX + ": " + idJugador;
+        }
+
+        Partida p = j.getPartida();
+
+        if (p.getEstat() == EstatPartida.FINALITZADA) {
+            return Missatges.PARTIDA_FINALITZADA;
+        }
+        if (p.getEstat() != EstatPartida.EN_CURS) {
+            return Missatges.PARTIDA_NO_EN_CURS;
+        }
+        if (p.getActiu() == null || !p.getActiu().getId().equals(j.getId())) {
+            return Missatges.JUGADOR_NO_ACTIU;
+        }
+        if (!p.isDausTirats()) {
+            return Missatges.DAUS_NO_TIRATS;
+        }
+        if (p.isLladrePendent()) {
+            return Missatges.LLADRE_PENDENT;
+        }
+
+        Vertex v = session.get(Vertex.class, idVertex);
+        if (v == null) {
+            return Missatges.VERTEX_NO_EXISTEIX + ": " + idVertex;
+        }
+        if (!v.getPartida().getId().equals(p.getId())) {
+            return Missatges.VERTEX_ALTRA_PARTIDA;
+        }
+
+        Assentament actual = v.getAssentament();
+        if (actual == null) {
+            return Missatges.VERTEX_LLIURE;
+        }
+        if (!(actual instanceof Poblat poblat)) {
+            return Missatges.NO_POBLAT_PROPI;
+        }
+        if (poblat.getPropietari() == null || !poblat.getPropietari().getId().equals(j.getId())) {
+            return Missatges.NO_POBLAT_PROPI;
+        }
+
+        if (comptarCiutats(j) >= 4) {
+            return Missatges.LIMIT_CIUTATS;
+        }
+        if (!potPagarCiutat(j)) {
+            return Missatges.RECURSOS_INSUFICIENTS_CIUTAT;
+        }
+        pagarCiutat(j);
+
+        j.getConstruccions().remove(poblat);
+        v.setAssentament(null);
+        session.remove(poblat);
+        session.flush();
+
+        Ciutat ciutat = new Ciutat();
+        ciutat.setVertex(v);
+        ciutat.setPropietari(j);
+        session.persist(ciutat);
+        j.getConstruccions().add(ciutat);
+        v.setAssentament(ciutat);
+
+        String victoria = PartidaDao.verificarVictoria(session, p);
+        return p.getEstat() == EstatPartida.FINALITZADA
+                ? Missatges.CIUTAT_CONSTRUIDA + ". " + victoria
+                : Missatges.CIUTAT_CONSTRUIDA;
     }
 
     @Override
@@ -786,9 +865,17 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
     }
 
     private long comptarPoblats(Jugador j) {
-        return j.getConstruccions().stream()
-                .filter(c -> c instanceof Poblat)
-                .count();
+
+        long cont = 0;
+        
+        for(Construccio c : j.getConstruccions()){
+            if (c instanceof Poblat) {
+                cont++;
+            }
+        }
+
+        return cont;
+                
     }
 
     private boolean teCarreteraAdjacent(Jugador j, Vertex v) {
@@ -883,6 +970,32 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
             }
         }
         return 0;
+    }
+
+    private long comptarCiutats(Jugador j) {
+        long cont = 0;
+        
+        for(Construccio c : j.getConstruccions()){
+            if (c instanceof Ciutat) {
+                cont++;
+            }
+        }
+
+        return cont;
+    }
+
+    private boolean potPagarCiutat(Jugador j) {
+        return quantitatRecurs(j, TipusRecurs.BLAT) >= 2 && quantitatRecurs(j, TipusRecurs.MINERAL) >= 3;
+    }
+
+    private void pagarCiutat(Jugador j) {
+        for (RecursJugador r : j.getInventari()) {
+            if (r.getTipus() == TipusRecurs.BLAT) {
+                r.setQuantitat(r.getQuantitat() - 2);
+            } else if (r.getTipus() == TipusRecurs.MINERAL) {
+                r.setQuantitat(r.getQuantitat() - 3);
+            }
+        }
     }
 
 }
