@@ -89,7 +89,8 @@ public class Main {
                             resultat(jugadors.JugarCarta(jugador, carta, recurs));
                             break;
                         case 17:
-                            resultat(jugadors.ExercitMesGran(llegirEnter(entrada, "ID partida: ")));
+                            Jugador lider = partides.ExercitMesGran(llegirEnter(entrada, "ID partida: "));
+                            System.out.println(lider == null ? "No hi ha un exèrcit més gran." : "Exèrcit més gran: " + lider.getNom());
                             break;
                         case 18:
                             List<Vertex> vertexs = jugadors.VertexsDisponibles(llegirEnter(entrada, "ID jugador: "));
