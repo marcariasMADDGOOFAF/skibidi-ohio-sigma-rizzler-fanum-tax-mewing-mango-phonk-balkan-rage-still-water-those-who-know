@@ -11,6 +11,5 @@ public interface IJugadorDao extends IGenericDao<Jugador,Integer> {
     String MoureLladre(int idJugador, int idHexagon, Integer idJugadorVictima);
     String ComprarCarta(int idJugador);
     String JugarCarta(int idJugador, int idCarta, TipusRecurs recurs);
-    String ExercitMesGran(int idPartida);
     List<Vertex> VertexsDisponibles(int idJugador);
 }

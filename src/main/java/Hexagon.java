@@ -27,9 +27,9 @@ import jakarta.validation.constraints.Max;
 @Table(name = "hexagom", uniqueConstraints = @UniqueConstraint(columnNames = {"partida_id", "codi"}))
 @Check(constraints = "numero IS NULL OR (numero BETWEEN 2 AND 12 AND numero <> 7)")
 @NamedQuery(name = "Hexagon.taulerPerPartida", query =
-    "SELECT DISTINCT h FROM Hexagon h LEFT JOIN FETCH h.hexagonVertices hv " +
-    "LEFT JOIN FETCH hv.vertex v LEFT JOIN FETCH v.assentament a " +
-    "LEFT JOIN FETCH a.propietari WHERE h.partida.id = :idPartida ORDER BY h.id")
+    "select distinct h from Hexagon h left join fetch h.hexagonVertices hv " +
+    "left join fetch hv.vertex v left join fetch v.assentament a " +
+    "left join fetch a.propietari where h.partida.id = :idPartida order by h.id")
 @DynamicInsert
 public class Hexagon {
     @Id

@@ -50,6 +50,14 @@ public class CartaDesenvolupament {
 		this.partida = partida;
 	}
 
+	public Jugador getJugadorTitular() {
+		return jugadorTitular;
+	}
+
+	public void setJugadorTitular(Jugador jugadorTitular) {
+		this.jugadorTitular = jugadorTitular;
+	}
+
 	public CartaDesenvolupament() {
 	}
 

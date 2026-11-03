@@ -92,6 +92,10 @@ public class Vertex {
         return assentament;
     }
 
+    public void setAssentament(Assentament assentament) {
+        this.assentament = assentament;
+    }
+
     public Partida getPartida() {
         return partida;
     }

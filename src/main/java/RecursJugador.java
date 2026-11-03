@@ -19,7 +19,7 @@ import org.hibernate.annotations.Check;
 @Entity
 @Table(name = "recurs_jugador", uniqueConstraints = @UniqueConstraint(columnNames = {"jugador_id", "tipus"}))
 @NamedQuery(name = "RecursJugador.perJugador",
-    query = "FROM RecursJugador r WHERE r.jugador.id = :idJugador ORDER BY r.tipus")
+    query = "from RecursJugador r where r.jugador.id = :idJugador order by r.tipus")
 @Check(constraints = "quantitat >= 0")
 public class RecursJugador {
     @Id
