@@ -34,8 +34,9 @@ public class CartaDesenvolupament {
 	private Integer rondaCompra;
 
 
-	@ManyToOne(fetch = FetchType.EAGER, optional = true)
-	@JoinColumn(name = "partida_id")
+	@NotNull
+	@ManyToOne(fetch = FetchType.EAGER, optional = false)
+	@JoinColumn(name = "partida_id", nullable = false)
 	private Partida partida;
 
 	@ManyToOne(fetch = FetchType.EAGER, optional = true)

@@ -95,7 +95,7 @@ public class Main {
                         case 18:
                             List<Vertex> vertexs = jugadors.VertexsDisponibles(llegirEnter(entrada, "ID jugador: "));
                             if (vertexs == null || vertexs.isEmpty()) {
-                                System.out.println("Sense resultats. Comprova si el DAO està implementat.");
+                                System.out.println("No hi ha vèrtexs disponibles per construir un poblat en aquest torn.");
                             } else {
                                 vertexs.forEach(v -> System.out.println("ID=" + v.getId() + " codi=" + v.getCodi()));
                             }

@@ -271,6 +271,12 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         if (segonPoblat) {
             sb.append("\n").append(repartirRecursosInicials(session, j, v));
         }
+        if (!preparacio) {
+            String victoria = PartidaDao.verificarVictoria(session, p);
+            if (p.getEstat() == EstatPartida.FINALITZADA) {
+                sb.append(". ").append(victoria);
+            }
+        }
         return sb.toString();
     }
 
@@ -849,7 +855,20 @@ public class JugadorDao extends GenericDao<Jugador,Integer> implements IJugadorD
         if (j == null) {
             return List.of();
         }
-        boolean preparacio = j.getPartida().getEstat() == EstatPartida.PREPARACIO;
+        Partida p = j.getPartida();
+        boolean preparacio = p.getEstat() == EstatPartida.PREPARACIO;
+        if ((!preparacio && p.getEstat() != EstatPartida.EN_CURS)
+                || p.getActiu() == null || !p.getActiu().getId().equals(j.getId())
+                || comptarPoblats(j) >= 5) {
+            return List.of();
+        }
+        if (preparacio) {
+            if (comptarPoblats(j) >= p.getRonda()) {
+                return List.of();
+            }
+        } else if (!p.isDausTirats() || p.isLladrePendent() || !potPagarPoblat(j)) {
+            return List.of();
+        }
         String jpql = "select v from Vertex v where v.partida.id = :idPartida and v.assentament is null "
                 + "and not exists (select a from Aresta a where "
                 + "(a.vertexA = v and a.vertexB.assentament is not null) or (a.vertexB = v and a.vertexA.assentament is not null)) "

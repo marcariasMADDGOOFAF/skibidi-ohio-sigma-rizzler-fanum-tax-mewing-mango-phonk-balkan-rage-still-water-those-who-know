@@ -353,8 +353,8 @@ public class PartidaDao extends GenericDao<Partida,Integer> implements IPartidaD
             return Missatges.LLADRE_PENDENT;
         }
 
-        int dau1 = (int) Math.floor(Math.random()*6);
-        int dau2 = (int) Math.floor(Math.random()*6);
+        int dau1 = (int) (Math.random() * 6) + 1;
+        int dau2 = (int) (Math.random() * 6) + 1;
         int numero = dau1 + dau2;
 
         p.setUltimaTirada(numero);
